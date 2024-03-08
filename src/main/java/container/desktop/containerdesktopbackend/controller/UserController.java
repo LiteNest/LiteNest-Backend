@@ -26,8 +26,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Result> login(@RequestBody UserDTO userDTO,
-                                        HttpServletRequest request) {
+    public ResponseEntity<Result> login(@RequestBody UserDTO userDTO) {
         String username = userDTO.username();
         String password = userDTO.password();
         UserService.Status status = userService.login(username, password);
@@ -41,10 +40,30 @@ public class UserController {
         builder.code(httpStatus.value());
         if (status == UserService.Status.SUCCESS){
             builder.details(JSONObject.of("token", jwtService.generateToken(username),
-            "admin", ((User) request.getAttribute("user")).hasRole(User.Role.ADMIN)));
+            "admin", userService.getByUsername(username).hasRole(User.Role.ADMIN)));
         }
+        builder.message(status.getMessage());
         Result result = builder.build();
         return new ResponseEntity<>(result, httpStatus);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<Result> register(@RequestBody UserDTO userDTO) {
+        String username = userDTO.username();
+        String password = userDTO.password();
+        UserService.Status status = userService.register(username, password);
+        Result.ResultBuilder builder = Result.builder();
+        HttpStatus httpStatus =
+                switch (status) {
+                    case USER_NOT_FOUND -> HttpStatus.NOT_FOUND;
+                    case USER_ALREADY_EXISTS -> HttpStatus.CONFLICT;
+                    default -> HttpStatus.OK;
+                };
+        builder.code(httpStatus.value());
+        builder.message(status.getMessage());
+        Result result = builder.build();
+        return new ResponseEntity<>(result, httpStatus);
+
     }
 
 }

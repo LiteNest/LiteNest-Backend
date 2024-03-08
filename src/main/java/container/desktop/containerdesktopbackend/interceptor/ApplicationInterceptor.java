@@ -8,11 +8,12 @@ import jakarta.annotation.Nonnull;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
+
 public final class ApplicationInterceptor implements Interceptor {
 
     @Value("${jwt.token-header}")
@@ -21,6 +22,12 @@ public final class ApplicationInterceptor implements Interceptor {
     private String TOKEN_HEAD;
     private final JwtService jwtService;
     private final UserRepository<BackendUser> userRepository;
+
+    public ApplicationInterceptor(JwtService jwtService,
+                                  @Qualifier("user_repo") UserRepository<BackendUser> userRepository) {
+        this.jwtService = jwtService;
+        this.userRepository = userRepository;
+    }
 
     @Override
     public boolean preHandle(

@@ -70,6 +70,12 @@ public class BackendUserService implements UserService<BackendUser> {
     }
 
     @Override
+    public BackendUser getByUsername(String username) {
+        Optional<BackendUser> optional = userRepository.findByUsername(username);
+        return optional.orElse(null);
+    }
+
+    @Override
     public void deleteById(Long id) {
         userRepository.deleteById(id);
     }
