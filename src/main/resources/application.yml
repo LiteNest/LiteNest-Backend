@@ -33,8 +33,7 @@ container:
   connection-timeout-unit: SECOND
   response-timeout: 45
   response-timeout-unit: SECOND
-  image:
-    auto-update: true
+  auto-flush: true
 logging:
   pattern:
 

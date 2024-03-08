@@ -1,5 +1,9 @@
 package container.desktop.containerdesktopbackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import container.desktop.api.entity.Container;
 import container.desktop.api.entity.Network;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,6 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -17,22 +22,28 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "network")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class BackendNetwork implements Network {
     @Id
     @Column(name = "id")
     private String id;
+    private String name;
     @Column(name = "address")
+    @JsonProperty("address")
     private String addr;
     @Column(name = "gateway_address")
+    @JsonProperty("gateway_addr")
     private String gatewayAddr;
     @Column(name = "network_driver")
     @Enumerated(EnumType.STRING)
     private NetworkDriver networkDriver;
     @CollectionTable(name = "network_container")
     @ElementCollection(fetch = FetchType.EAGER)
+    @JsonIgnore
     private List<String> containerIds;
     private boolean attachable;
     private transient final Map<String, Object> attributes = new HashMap<>();
+    private transient final List<Container> containers = new LinkedList<>();
 
     @Override
     public void addAttribute(String key, Object value) {
