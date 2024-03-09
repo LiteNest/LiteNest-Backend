@@ -5,7 +5,7 @@ import container.desktop.containerdesktopbackend.entity.BackendContainer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-@Repository
+@Repository("container_repo")
 public interface BackendContainerRepository
         extends JpaRepository<BackendContainer, String>, ContainerRepository<BackendContainer> {
 

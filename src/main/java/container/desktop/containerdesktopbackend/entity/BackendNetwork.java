@@ -12,7 +12,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +27,9 @@ public class BackendNetwork implements Network {
     @Column(name = "id")
     private String id;
     private String name;
-    protected boolean available;
+    private boolean available;
+    @Column(name = "is_shown")
+    private boolean shown;
     @Column(name = "address")
     @JsonProperty("address")
     private String addr;

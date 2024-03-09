@@ -30,6 +30,10 @@ public class BackendImage implements Image {
     private Integer minimumRAM;
     @Column(name = "remote_desktop_port")
     private Integer remoteDesktopPort;
+    @Column(name = "available")
+    private boolean available;
+    @Column(name = "is_shown")
+    private boolean shown;
 
     private transient final Map<String, Object> attributes = new HashMap<>();
 
