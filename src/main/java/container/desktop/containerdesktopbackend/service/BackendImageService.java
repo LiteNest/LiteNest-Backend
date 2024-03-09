@@ -1,6 +1,7 @@
 package container.desktop.containerdesktopbackend.service;
 
 import com.github.dockerjava.api.DockerClient;
+import container.desktop.api.entity.Image;
 import container.desktop.api.repository.ImageRepository;
 import container.desktop.api.service.ImageService;
 import container.desktop.containerdesktopbackend.entity.BackendImage;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
+@Service("image_service")
 public class BackendImageService implements ImageService<BackendImage> {
 
     @Value("${container.auto-flush}")
@@ -28,6 +29,16 @@ public class BackendImageService implements ImageService<BackendImage> {
     @PostConstruct
     public void init(){
         if (autoFlush) flush();
+    }
+
+    @Override
+    public List<? extends Image> listAll() {
+        return imageImageRepository.findAll();
+    }
+
+    @Override
+    public List<? extends Image> listAllPublic() {
+        return imageImageRepository.findAll().stream().filter(BackendImage::isPublic).toList();
     }
 
     @Override

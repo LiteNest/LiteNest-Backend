@@ -5,6 +5,8 @@ import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.PortBinding;
 import container.desktop.api.entity.Container;
+import container.desktop.api.entity.User;
+import container.desktop.api.exception.ContainerCreationException;
 import container.desktop.api.repository.ContainerRepository;
 import container.desktop.api.repository.ImageRepository;
 import container.desktop.api.repository.NetworkRepository;
@@ -80,12 +82,17 @@ public class BackendContainerService implements ContainerService<BackendContaine
                          Integer vcpu,
                          Integer RAM,
                          String command,
-                         @NotNull String username) {
+                         @NotNull String username) throws ContainerCreationException {
         if (command.isBlank()) {
             command = "tail -f /dev/null";
         }
+        Optional<BackendUser> userOptional = userRepository.findByUsername(username);
+        assert userOptional.isPresent();
         Optional<BackendImage> imageOptional = imageImageRepository.findById(imageId);
         assert imageOptional.isPresent();
+        if (!userOptional.get().hasRole(User.Role.ADMIN) && !imageOptional.get().isPublic()) {
+            throw new ContainerCreationException("使用了非公开镜像", ContainerCreationException.Reason.USING_NON_PUBLIC_IMAGE);
+        }
         Integer port = imageOptional.get().getRemoteDesktopPort();
         Optional<BackendNetwork> networkOptional = networkRepository.findById(networkId);
         assert networkOptional.isPresent();
@@ -107,8 +114,6 @@ public class BackendContainerService implements ContainerService<BackendContaine
             createContainerCmd.withName(name);
         }
         String id = createContainerCmd.exec().getId();
-        Optional<BackendUser> userOptional = userRepository.findByUsername(username);
-        assert userOptional.isPresent();
         BackendContainer container = BackendContainer.builder()
                 .id(id)
                 .RAM(RAM)
@@ -135,7 +140,7 @@ public class BackendContainerService implements ContainerService<BackendContaine
                          Integer vcpu,
                          Integer RAM,
                          String command,
-                         @NotNull String username) {
+                         @NotNull String username) throws ContainerCreationException{
         return create(null, imageId, networkId, rootDisk, vcpu, RAM, command, username);
     }
 

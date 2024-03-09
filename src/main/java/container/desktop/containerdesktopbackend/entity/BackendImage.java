@@ -1,5 +1,7 @@
 package container.desktop.containerdesktopbackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import container.desktop.api.entity.Image;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -25,15 +27,19 @@ public class BackendImage implements Image {
     private String id;
     private String name;
     @Column(name = "min_vcpu")
+    @JsonProperty("min_vcpus")
     private Integer minimumVcpus;
+    @JsonProperty("min_ram")
     @Column(name = "min_ram")
     private Integer minimumRAM;
     @Column(name = "remote_desktop_port")
+    @JsonProperty("remote_desktop_port")
     private Integer remoteDesktopPort;
     @Column(name = "available")
     private boolean available;
-    @Column(name = "is_shown")
-    private boolean shown;
+    @Column(name = "is_public")
+    @JsonIgnore
+    private boolean _public;
 
     private transient final Map<String, Object> attributes = new HashMap<>();
 
@@ -55,5 +61,10 @@ public class BackendImage implements Image {
     @Override
     public void clearAttributes() {
         attributes.clear();
+    }
+
+    @Override
+    public boolean isPublic() {
+        return _public;
     }
 }

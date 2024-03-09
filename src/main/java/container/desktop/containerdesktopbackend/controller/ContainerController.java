@@ -2,6 +2,7 @@ package container.desktop.containerdesktopbackend.controller;
 
 import container.desktop.api.entity.Container;
 import container.desktop.api.entity.User;
+import container.desktop.api.exception.ContainerCreationException;
 import container.desktop.api.service.ContainerService;
 import container.desktop.containerdesktopbackend.DTO.ContainerCreationDTO;
 import container.desktop.containerdesktopbackend.Result;
@@ -46,12 +47,22 @@ public class ContainerController {
                                          HttpServletRequest request) {
         User user = (User) request.getAttribute("user");
         log.info("用户{}请求创建容器", user.getUsername());
-        String id = containerService.create(
-                containerCreationDTO.imageId(), containerCreationDTO.networkId(),
-                containerCreationDTO.rootDisk(), containerCreationDTO.vcpus(),
-                containerCreationDTO.ram(), containerCreationDTO.command(),
-                user.getUsername()
-        );
+        String id;
+        try {
+            id = containerService.create(
+                    containerCreationDTO.imageId(), containerCreationDTO.networkId(),
+                    containerCreationDTO.rootDisk(), containerCreationDTO.vcpus(),
+                    containerCreationDTO.ram(), containerCreationDTO.command(),
+                    user.getUsername()
+            );
+        } catch (ContainerCreationException e) {
+            Result result = Result.builder()
+                    .code(HttpStatus.FORBIDDEN.value())
+                    .message(e.getMessage())
+                    .build();
+            return new ResponseEntity<>(result, HttpStatus.FORBIDDEN);
+        }
+
         log.info("用户{}请求创建的容器{}创建成功", user.getUsername(), id);
         Result result = Result.builder()
                 .code(HttpStatus.OK.value())
