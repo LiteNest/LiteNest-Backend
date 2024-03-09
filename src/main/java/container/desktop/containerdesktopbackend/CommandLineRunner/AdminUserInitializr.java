@@ -1,4 +1,4 @@
-package container.desktop.containerdesktopbackend;
+package container.desktop.containerdesktopbackend.CommandLineRunner;
 
 import container.desktop.api.entity.User;
 import container.desktop.api.repository.UserRepository;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Scanner;
 
 @Component
-@Order(1)
+@Order(2)
 public class AdminUserInitializr implements CommandLineRunner {
 
     private final UserRepository<BackendUser> userRepository;

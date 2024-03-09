@@ -1,6 +1,8 @@
 package container.desktop.containerdesktopbackend.service;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.model.ContainerNetwork;
+import container.desktop.api.entity.Container;
 import container.desktop.api.entity.Network;
 import container.desktop.api.repository.ContainerRepository;
 import container.desktop.api.repository.NetworkRepository;
@@ -14,13 +16,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-@Service
+@Service("network_service")
 public class BackendNetworkService implements NetworkService<BackendNetwork> {
 
     private static final Logger log = LoggerFactory.getLogger(BackendNetworkService.class);
@@ -46,31 +45,53 @@ public class BackendNetworkService implements NetworkService<BackendNetwork> {
     }
 
     @Override
+    public void flush(String networkId) {
+        Optional<BackendNetwork> networkOptional = networkRepository.findById(networkId);
+        if (networkOptional.isEmpty()) return;
+        refresh(List.of(networkOptional.get()));
+    }
+
+    public void refresh(List<BackendNetwork> backendNetworks) {
+        List<BackendContainer> backendContainers = containerRepository.findAll();
+        backendContainers.forEach(container -> {
+            Set<Map.Entry<String, ContainerNetwork>> entries = client.inspectContainerCmd(container.getId()).exec().getNetworkSettings().getNetworks().entrySet();
+            Set<String> networkNames_in_database = backendNetworks.stream().map(Network::getName).collect(Collectors.toSet());
+            // 筛选该容器加入的网络（该网络已在数据库中登记过），使用流式操作进行筛选
+            List<Map.Entry<String, ContainerNetwork>> entries1 = entries.stream().filter(e -> networkNames_in_database.contains(e.getKey())).toList();
+            entries1.forEach(entry -> {
+                backendNetworks.forEach(backendNetwork -> {
+                    if (Objects.equals(entry.getKey(), backendNetwork.getName())){
+                        List<String> containerIds = backendNetwork.getContainerIds();
+                        if (containerIds == null) {
+                            containerIds = new ArrayList<>();
+                        }
+                        containerIds.add(container.getId());
+                        backendNetwork.setContainerIds(containerIds);
+                    }
+                });
+            });
+        });
+        networkRepository.saveAllAndFlush(backendNetworks);
+    }
+
+    @Override
     public void flush() {
         log.info("开始刷新网络数据库");
         long start = System.nanoTime();
         List<BackendNetwork> backendNetworks = new ArrayList<>();
-        Set<String> collect = containerRepository.findAll().stream().map(BackendContainer::getId).collect(Collectors.toUnmodifiableSet());
-        client.listNetworksCmd().exec()
-                .forEach(network -> {
-                    BackendNetwork.BackendNetworkBuilder builder
-                            = BackendNetwork.builder()
-                            .id(network.getId())
-                            .name(network.getName())
-                            .containerIds(
-                                    client.inspectNetworkCmd().withNetworkId(network.getId()).exec().getContainers().keySet()
-                                            .stream().parallel().filter(collect::contains).toList()
-                            )
-                            .networkDriver(Network.NetworkDriver.parse(network.getDriver()));
-                    List<com.github.dockerjava.api.model.Network.Ipam.Config> config = network.getIpam().getConfig();
-                    if (config != null) {
-                        builder.addr(config.getFirst().getSubnet())
-                                .gatewayAddr(config.getFirst().getGateway());
-                    }
-                    BackendNetwork backendNetwork = builder.build();
-                    backendNetworks.add(backendNetwork);
-                });
+        for (com.github.dockerjava.api.model.Network network : client.listNetworksCmd().exec()) {
+            BackendNetwork.BackendNetworkBuilder backendNetworkBuilder = BackendNetwork.builder()
+                    .id(network.getId())
+                    .name(network.getName())
+                    .networkDriver(Network.NetworkDriver.parse(network.getDriver()));
+            if (network.getIpam().getConfig() != null) {
+                backendNetworkBuilder.addr(network.getIpam().getConfig().getFirst().getSubnet());
+            }
+            backendNetworks.add(backendNetworkBuilder.build());
+        }
         networkRepository.saveAllAndFlush(backendNetworks);
+        refresh(backendNetworks);
+
         long end = System.nanoTime();
         log.info("网络数据库刷新完毕");
         log.info("网络数据库刷新用时{}ms", (end-start)/1.0e6);
@@ -163,6 +184,15 @@ public class BackendNetworkService implements NetworkService<BackendNetwork> {
     @Override
     public String create(String name, Network.NetworkDriver driver) {
         return create(name, driver, false);
+    }
+
+    @Override
+    public void start(String id) {
+        Optional<BackendContainer> optional = containerRepository.findById(id);
+        assert optional.isPresent();
+        BackendContainer backendContainer = optional.get();
+        backendContainer.setPowerStatus(Container.PowerStatus.ACTIVE);
+        client.startContainerCmd(id).exec();
     }
 
     @Override

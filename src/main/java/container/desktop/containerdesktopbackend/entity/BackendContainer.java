@@ -1,5 +1,6 @@
 package container.desktop.containerdesktopbackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import container.desktop.api.entity.Container;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -22,15 +23,23 @@ public class BackendContainer implements Container {
     @Column(name = "id")
     private String id;
     @Column(name = "image_id")
+    @JsonProperty("image_id")
     private String imageId;
     @Column(name = "root_disk")
+    @JsonProperty("root_disk")
     private Integer rootDisk;
     @Column(name = "vcpus")
+    @JsonProperty("vcpus")
     private Integer Vcpus;
     private Integer RAM;
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "container_network")
+    @JsonProperty("network_ids")
     private List<String> networkIds;
+    @Column(name = "power_status")
+    @Enumerated(EnumType.STRING)
+    @JsonProperty("power_status")
+    private PowerStatus powerStatus = PowerStatus.POWER_OFF;
     private transient final Map<String, Object> attributes = new HashMap<>();
 
     @Override

@@ -15,9 +15,11 @@ import container.desktop.containerdesktopbackend.entity.BackendContainer;
 import container.desktop.containerdesktopbackend.entity.BackendImage;
 import container.desktop.containerdesktopbackend.entity.BackendNetwork;
 import container.desktop.containerdesktopbackend.entity.BackendUser;
+import container.desktop.containerdesktopbackend.event.ContainerCreatedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -33,6 +35,7 @@ public class BackendContainerService implements ContainerService<BackendContaine
     private final UserRepository<BackendUser> userRepository;
     private final DockerClient client;
     private final PortService portService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public BackendContainerService(
             @Qualifier("container_repo") ContainerRepository<BackendContainer> containerContainerRepository,
@@ -40,13 +43,15 @@ public class BackendContainerService implements ContainerService<BackendContaine
             NetworkRepository<BackendNetwork> networkRepository,
             @Qualifier("user_repo") UserRepository<BackendUser> userRepository,
             DockerClient client,
-            @Qualifier("port_service") PortService portService) {
+            @Qualifier("port_service") PortService portService,
+            ApplicationEventPublisher applicationEventPublisher) {
         this.containerContainerRepository = containerContainerRepository;
         this.imageImageRepository = imageImageRepository;
         this.networkRepository = networkRepository;
         this.userRepository = userRepository;
         this.client = client;
         this.portService = portService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Override
@@ -101,19 +106,22 @@ public class BackendContainerService implements ContainerService<BackendContaine
             createContainerCmd.withName(name);
         }
         String id = createContainerCmd.exec().getId();
-        containerContainerRepository.saveAndFlush(BackendContainer.builder()
-                        .id(id)
-                        .RAM(RAM)
-                        .rootDisk(rootDisk)
-                        .Vcpus(vcpu)
-                        .imageId(imageId)
-                        .networkIds(List.of(networkId))
-                .build());
+        BackendContainer container = BackendContainer.builder()
+                .id(id)
+                .RAM(RAM)
+                .rootDisk(rootDisk)
+                .Vcpus(vcpu)
+                .imageId(imageId)
+                .networkIds(List.of(networkId))
+                .powerStatus(Container.PowerStatus.POWER_OFF)
+                .build();
+        containerContainerRepository.saveAndFlush(container);
         Optional<BackendUser> userOptional = userRepository.findByUsername(username);
         assert userOptional.isPresent();
         BackendUser backendUser = userOptional.get();
         backendUser.addContainer(id);
         userRepository.saveAndFlush(backendUser);
+        applicationEventPublisher.publishEvent(new ContainerCreatedEvent(this, container));
         return id;
     }
 
