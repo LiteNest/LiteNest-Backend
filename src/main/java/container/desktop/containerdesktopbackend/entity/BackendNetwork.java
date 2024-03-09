@@ -28,6 +28,7 @@ public class BackendNetwork implements Network {
     @Column(name = "id")
     private String id;
     private String name;
+    protected boolean available;
     @Column(name = "address")
     @JsonProperty("address")
     private String addr;
@@ -43,7 +44,7 @@ public class BackendNetwork implements Network {
     private List<String> containerIds;
     private boolean attachable;
     private transient final Map<String, Object> attributes = new HashMap<>();
-    private transient final List<Container> containers = new LinkedList<>();
+    private transient List<Container> containers;
 
     @Override
     public void addAttribute(String key, Object value) {
@@ -64,4 +65,5 @@ public class BackendNetwork implements Network {
     public void clearAttributes() {
         attributes.clear();
     }
+
 }

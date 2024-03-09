@@ -46,6 +46,7 @@ public class ContainerEngineConfig {
                 .withRegistryPassword(registryPassword)
                 .withRegistryEmail(registryEmail)
                 .withRegistryUrl(registryURL)
+                .withApiVersion("1.44")
                 .build();
     }
 

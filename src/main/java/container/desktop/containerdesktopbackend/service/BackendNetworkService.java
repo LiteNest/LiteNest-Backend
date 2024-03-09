@@ -8,6 +8,8 @@ import container.desktop.api.service.NetworkService;
 import container.desktop.containerdesktopbackend.entity.BackendContainer;
 import container.desktop.containerdesktopbackend.entity.BackendNetwork;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,10 +17,13 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class BackendNetworkService implements NetworkService<BackendNetwork> {
 
+    private static final Logger log = LoggerFactory.getLogger(BackendNetworkService.class);
     @Value("${container.auto-flush}")
     private boolean autoFlush;
 
@@ -42,13 +47,20 @@ public class BackendNetworkService implements NetworkService<BackendNetwork> {
 
     @Override
     public void flush() {
+        log.info("开始刷新网络数据库");
+        long start = System.nanoTime();
         List<BackendNetwork> backendNetworks = new ArrayList<>();
+        Set<String> collect = containerRepository.findAll().stream().map(BackendContainer::getId).collect(Collectors.toUnmodifiableSet());
         client.listNetworksCmd().exec()
                 .forEach(network -> {
                     BackendNetwork.BackendNetworkBuilder builder
                             = BackendNetwork.builder()
                             .id(network.getId())
                             .name(network.getName())
+                            .containerIds(
+                                    client.inspectNetworkCmd().withNetworkId(network.getId()).exec().getContainers().keySet()
+                                            .stream().parallel().filter(collect::contains).toList()
+                            )
                             .networkDriver(Network.NetworkDriver.parse(network.getDriver()));
                     List<com.github.dockerjava.api.model.Network.Ipam.Config> config = network.getIpam().getConfig();
                     if (config != null) {
@@ -59,6 +71,9 @@ public class BackendNetworkService implements NetworkService<BackendNetwork> {
                     backendNetworks.add(backendNetwork);
                 });
         networkRepository.saveAllAndFlush(backendNetworks);
+        long end = System.nanoTime();
+        log.info("网络数据库刷新完毕");
+        log.info("网络数据库刷新用时{}ms", (end-start)/1.0e6);
     }
 
     @Override
