@@ -49,7 +49,8 @@ public class ContainerController {
         String id = containerContainerService.create(
                 containerCreationDTO.imageId(), containerCreationDTO.networkId(),
                 containerCreationDTO.rootDisk(), containerCreationDTO.vcpus(),
-                containerCreationDTO.ram(), containerCreationDTO.command()
+                containerCreationDTO.ram(), containerCreationDTO.command(),
+                user.getUsername()
         );
         log.info("用户{}请求创建的容器{}创建成功", user.getUsername(), id);
         Result result = Result.builder()
