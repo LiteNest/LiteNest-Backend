@@ -40,6 +40,9 @@ public class BackendContainer implements Container {
     @Enumerated(EnumType.STRING)
     @JsonProperty("power_status")
     private PowerStatus powerStatus = PowerStatus.POWER_OFF;
+    @Column(name = "owner_id")
+    @JsonProperty("owner_id")
+    private Long ownerId;
     private transient final Map<String, Object> attributes = new HashMap<>();
 
     @Override

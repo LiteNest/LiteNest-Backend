@@ -5,14 +5,13 @@ import container.desktop.api.entity.User;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
-
 @Getter
-public class ContainerCreatedEvent extends ApplicationEvent {
+public class ContainerRemovedEvent extends ApplicationEvent {
+
     private final Container container;
-    private final User operator;
-    public ContainerCreatedEvent(Object source, Container container, User operator) {
+
+    public ContainerRemovedEvent(Object source, Container container) {
         super(source);
         this.container = container;
-        this.operator = operator;
     }
 }

@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,20 @@ public class BackendUser implements User {
     @Override
     public void addRole(Role role) {
         getRoles().add(role);
+    }
+
+    @Override
+    public void addContainerId(String id) {
+        if (getContainerIds() == null) {
+            setContainerIds(new ArrayList<>());
+        }
+        getContainerIds().add(id);
+    }
+
+    @Override
+    public void removeContainerId(String id) {
+        if (getContainerIds() == null) return;
+        getContainerIds().remove(id);
     }
 
     @Override

@@ -11,6 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,4 +68,19 @@ public class BackendNetwork implements Network {
         attributes.clear();
     }
 
+    @Override
+    public void removeContainerId(String id) {
+        if (getContainerIds() == null) {
+            setContainerIds(new ArrayList<>());
+        }
+        getContainerIds().remove(id);
+    }
+
+    @Override
+    public void addContainerId(String id) {
+        if (getContainerIds() == null) {
+            return;
+        }
+        getContainerIds().add(id);
+    }
 }

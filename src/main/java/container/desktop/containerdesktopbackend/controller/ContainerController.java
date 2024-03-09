@@ -21,19 +21,19 @@ import java.util.List;
 public class ContainerController {
 
     private static final Logger log = LoggerFactory.getLogger(ContainerController.class);
-    private final ContainerService<BackendContainer> containerContainerService;
+    private final ContainerService<BackendContainer> containerService;
 
     public ContainerController(
-            @Qualifier("container_service") ContainerService<BackendContainer> containerContainerService
+            @Qualifier("container_service") ContainerService<BackendContainer> containerService
     ) {
-        this.containerContainerService = containerContainerService;
+        this.containerService = containerService;
     }
 
     @GetMapping("/")
     public ResponseEntity<Result> list(HttpServletRequest request) {
         User user = (User) request.getAttribute("user");
         log.info("用户{}请求查看其拥有的实例列表", user.getUsername());
-        List<? extends Container> containers = containerContainerService.findByIds(user.getContainerIds());
+        List<? extends Container> containers = containerService.findByIds(user.getContainerIds());
         Result result = Result.builder()
                 .code(HttpStatus.OK.value())
                 .details(containers)
@@ -46,7 +46,7 @@ public class ContainerController {
                                          HttpServletRequest request) {
         User user = (User) request.getAttribute("user");
         log.info("用户{}请求创建容器", user.getUsername());
-        String id = containerContainerService.create(
+        String id = containerService.create(
                 containerCreationDTO.imageId(), containerCreationDTO.networkId(),
                 containerCreationDTO.rootDisk(), containerCreationDTO.vcpus(),
                 containerCreationDTO.ram(), containerCreationDTO.command(),
@@ -55,8 +55,26 @@ public class ContainerController {
         log.info("用户{}请求创建的容器{}创建成功", user.getUsername(), id);
         Result result = Result.builder()
                 .code(HttpStatus.OK.value())
-                .details(containerContainerService.findById(id))
+                .details(containerService.findById(id))
                 .build();
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{containerId}")
+    public ResponseEntity<Result> delete(@PathVariable String containerId,
+                                         HttpServletRequest request) {
+        User user = (User) request.getAttribute("user");
+        Container container = containerService.findById(containerId);
+        if (!user.hasContainer(containerId) || container == null) {
+            return new ResponseEntity<>(Result.builder()
+                    .code(404)
+                    .message("用户" + user.getUsername() + "不持有容器" + containerId)
+                    .build(), HttpStatus.NOT_FOUND);
+        }
+        containerService.delete(containerId);
+        return new ResponseEntity<>(Result.builder()
+                .code(200)
+                .message("容器" + containerId + "删除成功！")
+                .build(), HttpStatus.OK);
     }
 }

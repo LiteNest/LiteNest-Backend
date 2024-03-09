@@ -16,6 +16,7 @@ import container.desktop.containerdesktopbackend.entity.BackendImage;
 import container.desktop.containerdesktopbackend.entity.BackendNetwork;
 import container.desktop.containerdesktopbackend.entity.BackendUser;
 import container.desktop.containerdesktopbackend.event.ContainerCreatedEvent;
+import container.desktop.containerdesktopbackend.event.ContainerRemovedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -106,6 +107,8 @@ public class BackendContainerService implements ContainerService<BackendContaine
             createContainerCmd.withName(name);
         }
         String id = createContainerCmd.exec().getId();
+        Optional<BackendUser> userOptional = userRepository.findByUsername(username);
+        assert userOptional.isPresent();
         BackendContainer container = BackendContainer.builder()
                 .id(id)
                 .RAM(RAM)
@@ -114,14 +117,14 @@ public class BackendContainerService implements ContainerService<BackendContaine
                 .imageId(imageId)
                 .networkIds(List.of(networkId))
                 .powerStatus(Container.PowerStatus.POWER_OFF)
+                .ownerId(userOptional.get().getId())
                 .build();
         containerContainerRepository.saveAndFlush(container);
-        Optional<BackendUser> userOptional = userRepository.findByUsername(username);
-        assert userOptional.isPresent();
+
         BackendUser backendUser = userOptional.get();
         backendUser.addContainer(id);
         userRepository.saveAndFlush(backendUser);
-        applicationEventPublisher.publishEvent(new ContainerCreatedEvent(this, container));
+        applicationEventPublisher.publishEvent(new ContainerCreatedEvent(this, container, userOptional.get()));
         return id;
     }
 
@@ -134,6 +137,14 @@ public class BackendContainerService implements ContainerService<BackendContaine
                          String command,
                          @NotNull String username) {
         return create(null, imageId, networkId, rootDisk, vcpu, RAM, command, username);
+    }
+
+    @Override
+    public void delete(String containerId) {
+        client.killContainerCmd(containerId);
+        client.removeContainerCmd(containerId).withForce(true).exec();
+        applicationEventPublisher.publishEvent(new ContainerRemovedEvent(this, findById(containerId)));
+        containerContainerRepository.deleteAllByIdInBatch(List.of(containerId));
     }
 
     @Override

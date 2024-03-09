@@ -4,6 +4,7 @@ import container.desktop.api.entity.User;
 import container.desktop.api.repository.UserRepository;
 import container.desktop.api.service.UserService;
 import container.desktop.containerdesktopbackend.entity.BackendUser;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-@Service
+@Service("user_service")
 public class BackendUserService implements UserService<BackendUser> {
 
     private final UserRepository<BackendUser> userRepository;
@@ -73,6 +74,12 @@ public class BackendUserService implements UserService<BackendUser> {
     public BackendUser getByUsername(String username) {
         Optional<BackendUser> optional = userRepository.findByUsername(username);
         return optional.orElse(null);
+    }
+
+    @Nullable
+    @Override
+    public User findById(Long id) {
+        return userRepository.findById(id).orElse(null);
     }
 
     @Override

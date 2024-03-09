@@ -10,6 +10,7 @@ import container.desktop.api.service.NetworkService;
 import container.desktop.containerdesktopbackend.entity.BackendContainer;
 import container.desktop.containerdesktopbackend.entity.BackendNetwork;
 import jakarta.annotation.PostConstruct;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -49,6 +50,17 @@ public class BackendNetworkService implements NetworkService<BackendNetwork> {
         Optional<BackendNetwork> networkOptional = networkRepository.findById(networkId);
         if (networkOptional.isEmpty()) return;
         refresh(List.of(networkOptional.get()));
+    }
+
+    @Nullable
+    @Override
+    public Network findById(String id) {
+        return networkRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public List<? extends Network> findAll() {
+        return networkRepository.findAll();
     }
 
     public void refresh(List<BackendNetwork> backendNetworks) {
@@ -199,4 +211,6 @@ public class BackendNetworkService implements NetworkService<BackendNetwork> {
     public void update(BackendNetwork entity) {
         networkRepository.saveAndFlush(entity);
     }
+
+
 }
