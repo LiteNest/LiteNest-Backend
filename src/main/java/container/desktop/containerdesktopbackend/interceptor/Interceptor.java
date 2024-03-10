@@ -29,12 +29,26 @@ public interface Interceptor extends HandlerInterceptor {
 
     default void forbidden(@Nonnull HttpServletResponse response)
             throws IOException {
+        forbidden(response, "Forbidden");
+    }
+
+    default void forbidden(@Nonnull HttpServletResponse response, String message) throws IOException {
         response.setContentType("application/json;charset=UTF-8");
         Result result = Result.builder()
                 .code(HttpServletResponse.SC_FORBIDDEN)
                 .message("Forbidden")
                 .build();
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.getWriter().write(JSONObject.toJSONString(result));
+    }
+
+    default void unauthorized(@Nonnull HttpServletResponse response, String message) throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        Result result = Result.builder()
+                .code(HttpServletResponse.SC_UNAUTHORIZED)
+                .message("Unauthorized")
+                .build();
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.getWriter().write(JSONObject.toJSONString(result));
     }
 

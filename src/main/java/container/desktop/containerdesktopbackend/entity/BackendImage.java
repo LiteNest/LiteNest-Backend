@@ -1,6 +1,7 @@
 package container.desktop.containerdesktopbackend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import container.desktop.api.entity.Image;
 import jakarta.persistence.Column;
@@ -21,6 +22,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "image")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class BackendImage implements Image {
     @Id
     @Column(name = "id")

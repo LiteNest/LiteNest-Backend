@@ -42,6 +42,11 @@ public class BackendImageService implements ImageService<BackendImage> {
     }
 
     @Override
+    public Image findById(String id) {
+        return imageImageRepository.findById(id).orElse(null);
+    }
+
+    @Override
     public void flush() {
         List<BackendImage> images = new ArrayList<>();
         client.listImagesCmd().exec().stream().forEach(
