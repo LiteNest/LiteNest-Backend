@@ -88,4 +88,21 @@ public class ContainerController {
                 .message("容器" + containerId + "删除成功！")
                 .build(), HttpStatus.OK);
     }
+
+    @GetMapping("/{containerId}")
+    public ResponseEntity<Result> inspect(@PathVariable String containerId,
+                                          HttpServletRequest request) {
+        User user = (User) request.getAttribute("user");
+        Container container = containerService.findById(containerId);
+        if (!user.hasContainer(containerId) || container == null) {
+            return new ResponseEntity<>(Result.builder()
+                    .code(404)
+                    .message("用户" + user.getUsername() + "不持有容器" + containerId)
+                    .build(), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(Result.builder()
+                .code(200)
+                .details(container)
+                .build(), HttpStatus.OK);
+    }
 }
