@@ -5,6 +5,7 @@ import container.desktop.api.entity.User;
 import container.desktop.api.exception.ContainerCreationException;
 import container.desktop.api.service.ContainerService;
 import container.desktop.containerdesktopbackend.DTO.ContainerCreationDTO;
+import container.desktop.containerdesktopbackend.DTO.ContainerUpdatingDTO;
 import container.desktop.containerdesktopbackend.Result;
 import container.desktop.containerdesktopbackend.entity.BackendContainer;
 import jakarta.servlet.http.HttpServletRequest;
@@ -104,5 +105,32 @@ public class ContainerController {
                 .code(200)
                 .details(container)
                 .build(), HttpStatus.OK);
+    }
+
+    @PutMapping("/{containerId}")
+    public ResponseEntity<Result> update(@PathVariable String containerId,
+                                         @RequestBody ContainerUpdatingDTO updatingDTO,
+                                         HttpServletRequest request) {
+        String s = updatingDTO.powerStatus();
+        Container.PowerStatus status = Container.PowerStatus.parse(s);
+        if (status == null) {
+            return new ResponseEntity<>(Result.builder().code(400).message("无效的电源状态").build(),
+                        HttpStatus.BAD_REQUEST);
+        }
+        User user = (User) request.getAttribute("user");
+        Container container = containerService.findById(containerId);
+        if (!user.hasContainer(containerId) || container == null) {
+            return new ResponseEntity<>(Result.builder()
+                    .code(404)
+                    .message("用户" + user.getUsername() + "不持有容器" + containerId)
+                    .build(), HttpStatus.NOT_FOUND);
+        }
+        container.setPowerStatus(status);
+        containerService.update((BackendContainer) container);
+        Result result = Result.builder()
+                .code(200)
+                .message("更新容器成功")
+                .build();
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

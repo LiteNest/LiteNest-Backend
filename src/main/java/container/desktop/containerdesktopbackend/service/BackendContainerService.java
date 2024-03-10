@@ -32,7 +32,7 @@ import java.util.Optional;
 @Service("container_service")
 public class BackendContainerService implements ContainerService<BackendContainer> {
 
-    private final ContainerRepository<BackendContainer> containerContainerRepository;
+    private final ContainerRepository<BackendContainer> containerRepository;
     private final ImageRepository<BackendImage> imageImageRepository;
     private final NetworkRepository<BackendNetwork> networkRepository;
     private final UserRepository<BackendUser> userRepository;
@@ -41,14 +41,14 @@ public class BackendContainerService implements ContainerService<BackendContaine
     private final ApplicationEventPublisher applicationEventPublisher;
 
     public BackendContainerService(
-            @Qualifier("container_repo") ContainerRepository<BackendContainer> containerContainerRepository,
+            @Qualifier("container_repo") ContainerRepository<BackendContainer> containerRepository,
             ImageRepository<BackendImage> imageImageRepository,
             NetworkRepository<BackendNetwork> networkRepository,
             @Qualifier("user_repo") UserRepository<BackendUser> userRepository,
             DockerClient client,
             @Qualifier("port_service") PortService portService,
             ApplicationEventPublisher applicationEventPublisher) {
-        this.containerContainerRepository = containerContainerRepository;
+        this.containerRepository = containerRepository;
         this.imageImageRepository = imageImageRepository;
         this.networkRepository = networkRepository;
         this.userRepository = userRepository;
@@ -59,19 +59,19 @@ public class BackendContainerService implements ContainerService<BackendContaine
 
     @Override
     public List<? extends Container> list() {
-        return containerContainerRepository.findAll();
+        return containerRepository.findAll();
     }
 
     @Nullable
     @Override
     public Container findById(String id) {
-        Optional<BackendContainer> optional = containerContainerRepository.findById(id);
+        Optional<BackendContainer> optional = containerRepository.findById(id);
         return optional.orElse(null);
     }
 
     @Override
     public List<? extends Container> findByIds(List<String> containerIds) {
-        return containerContainerRepository.findByIdIn(containerIds);
+        return containerRepository.findByIdIn(containerIds);
     }
 
     @Override
@@ -124,7 +124,7 @@ public class BackendContainerService implements ContainerService<BackendContaine
                 .powerStatus(Container.PowerStatus.POWER_OFF)
                 .ownerId(userOptional.get().getId())
                 .build();
-        containerContainerRepository.saveAndFlush(container);
+        containerRepository.saveAndFlush(container);
 
         BackendUser backendUser = userOptional.get();
         backendUser.addContainer(id);
@@ -149,7 +149,7 @@ public class BackendContainerService implements ContainerService<BackendContaine
         client.killContainerCmd(containerId);
         client.removeContainerCmd(containerId).withForce(true).exec();
         applicationEventPublisher.publishEvent(new ContainerRemovedEvent(this, findById(containerId)));
-        containerContainerRepository.deleteAllByIdInBatch(List.of(containerId));
+        containerRepository.deleteAllByIdInBatch(List.of(containerId));
     }
 
     @Override
@@ -157,8 +157,26 @@ public class BackendContainerService implements ContainerService<BackendContaine
 
     }
 
+    public void start(String containerId) {
+        client.startContainerCmd(containerId).exec();
+    }
+
+    public void stop(String containerId) {
+        client.stopContainerCmd(containerId).exec();
+    }
+
     @Override
     public void update(BackendContainer entity) {
-
+        Optional<BackendContainer> repoContainer = containerRepository.findById(entity.getId());
+        assert repoContainer.isPresent();
+        BackendContainer container = repoContainer.get();
+        if (container.getPowerStatus() != entity.getPowerStatus()) {
+            if (entity.getPowerStatus() == Container.PowerStatus.ACTIVE) {
+                start(entity.getId());
+            } else {
+                stop(entity.getId());
+            }
+            containerRepository.saveAndFlush(entity);
+        }
     }
 }
