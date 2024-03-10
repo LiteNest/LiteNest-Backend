@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Service("network_service")
 public class BackendNetworkService implements NetworkService<BackendNetwork> {
 
-    private static final Logger log = LoggerFactory.getLogger(BackendNetworkService.class);
+    private static final Logger log = LoggerFactory.getLogger("网络服务");
     @Value("${container.auto-flush}")
     private boolean autoFlush;
 

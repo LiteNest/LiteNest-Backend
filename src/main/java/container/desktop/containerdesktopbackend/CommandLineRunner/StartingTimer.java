@@ -10,9 +10,9 @@ import org.springframework.stereotype.Component;
 import java.util.Formatter;
 
 @Component
-@Order(1)
+@Order(2)
 public class StartingTimer implements CommandLineRunner {
-    private static final Logger log = LoggerFactory.getLogger(StartingTimer.class);
+    private static final Logger log = LoggerFactory.getLogger("启动计时器");
 
     @Override
     public void run(String... args) throws Exception {

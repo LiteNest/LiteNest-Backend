@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Scanner;
 
 @Component
-@Order(2)
+@Order(3)
 public class AdminUserInitializr implements CommandLineRunner {
 
     private final UserRepository<BackendUser> userRepository;
@@ -27,7 +27,7 @@ public class AdminUserInitializr implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         if (userRepository.findAll().stream().noneMatch(user -> user.hasRole(User.Role.ADMIN))) {
-            Scanner scanner = new Scanner(System.in);
+            Scanner scanner = CommandLineReader.scanner;
             System.out.println();
             System.out.println("系统中没有管理员用户，现在需要创建一个管理员用户！");
             String username, password;
@@ -41,7 +41,6 @@ public class AdminUserInitializr implements CommandLineRunner {
                 System.out.print("> ");
                 password = scanner.nextLine();
             } while (password.isBlank());
-            scanner.close();
             BackendUser backendUser = BackendUser.builder()
                     .username(username)
                     .password(passwordEncoder.encode(password))

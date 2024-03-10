@@ -8,6 +8,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
+    open-in-view: false
 jwt:
   secret-key: "A259724DFB5DDDB6C76A04C033890B970FFB3435FEFD5C08"
   validity-period: 7
@@ -36,4 +37,4 @@ container:
   auto-flush: true
 logging:
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} %clr(%-5level) %clr(%logger{50}){cyan}：%msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%clr(%-5level)] %clr(%-15.15logger){cyan}：%msg%n"
