@@ -8,6 +8,7 @@ import container.desktop.api.service.UserService;
 import container.desktop.containerdesktopbackend.entity.BackendNetwork;
 import container.desktop.containerdesktopbackend.entity.BackendUser;
 import container.desktop.containerdesktopbackend.event.ContainerRemovedEvent;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;

@@ -2,6 +2,8 @@ package container.desktop.containerdesktopbackend.service;
 
 import com.github.dockerjava.api.DockerClient;
 import container.desktop.api.entity.Image;
+import container.desktop.api.exception.ImageUpdatingException;
+import container.desktop.api.exception.UpdatingException;
 import container.desktop.api.repository.ImageRepository;
 import container.desktop.api.service.ImageService;
 import container.desktop.containerdesktopbackend.entity.BackendImage;
@@ -69,7 +71,10 @@ public class BackendImageService implements ImageService<BackendImage> {
     }
 
     @Override
-    public void update(BackendImage entity) {
-
+    public void update(BackendImage entity) throws ImageUpdatingException {
+        if (entity.isAvailable() && entity.getRemoteDesktopPort() == null) {
+            throw new ImageUpdatingException(ImageUpdatingException.Error.DISALLOW_WITHOUT_REMOTE_DESKTOP_PORT);
+        }
+        imageImageRepository.saveAndFlush(entity);
     }
 }
