@@ -21,7 +21,7 @@ cors:
   allowed-origins: "*"
   allowed-methods: "*"
   allowed-headers: "*"
-  allowed-credentials: true
+  allowed-credentials: false
 
 container:
   host: "unix:///var/run/docker.sock"
@@ -37,4 +37,6 @@ container:
   auto-flush: true
 logging:
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%clr(%-5level)] %clr(%-15.15logger){cyan}：%msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%clr(%level)] %clr(%-15.15logger){cyan}：%msg%n"
+  level:
+    root: info

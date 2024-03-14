@@ -9,6 +9,7 @@ public record ContainerCreationDTO(
    @JsonProperty("root_disk") Integer rootDisk,
    @JsonProperty("image_id") String imageId,
    @JsonProperty("network_id") String networkId,
+   @JsonProperty("custom_name") String customName,
    @Nullable String command
 ) {
 }

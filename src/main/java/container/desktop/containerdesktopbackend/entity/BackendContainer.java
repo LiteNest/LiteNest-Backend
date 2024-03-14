@@ -22,6 +22,9 @@ public class BackendContainer implements Container {
     @Id
     @Column(name = "id")
     private String id;
+    @Column(name = "custom_name")
+    @JsonProperty("custom_name")
+    private String customName;
     @Column(name = "image_id")
     @JsonProperty("image_id")
     private String imageId;

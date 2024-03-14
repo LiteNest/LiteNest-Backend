@@ -42,6 +42,11 @@ public class AdminImageController {
         image.setPublic(updatingDTO._public());
         image.setAvailable(updatingDTO.available());
         image.setRemoteDesktopPort(updatingDTO.port());
+        image.setDescription(updatingDTO.description());
+        image.setMinimumRootDisk(updatingDTO.minRootDisk());
+        image.setMinimumRAM(updatingDTO.minRAM());
+        image.setMinimumVcpus(updatingDTO.minVCPUs());
+
         try {
             imageService.update((BackendImage) image);
         } catch (ImageUpdatingException e) {

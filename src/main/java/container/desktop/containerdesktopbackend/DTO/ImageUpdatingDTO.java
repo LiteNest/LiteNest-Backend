@@ -12,6 +12,14 @@ public record ImageUpdatingDTO(
         @Nullable
         @Min(1)
         @Max(65535)
-        Integer port
+        Integer port,
+        @JsonProperty("description")
+        String description,
+        @JsonProperty("min_vcpus")
+        Integer minVCPUs,
+        @JsonProperty("min_ram")
+        Integer minRAM,
+        @JsonProperty("min_root_disk")
+        Integer minRootDisk
 ) {
 }

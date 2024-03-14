@@ -37,6 +37,11 @@ public class BackendImage implements Image {
     private Integer remoteDesktopPort;
     @Column(name = "available")
     private boolean available;
+    @Column(name = "description")
+    private String description;
+    @Column(name = "min_root_disk")
+    @JsonProperty("min_root_disk")
+    private Integer minimumRootDisk;
     @Setter(AccessLevel.PRIVATE)
     @Column(name = "is_public")
     @JsonIgnore

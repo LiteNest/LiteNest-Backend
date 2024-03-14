@@ -1,5 +1,6 @@
 package container.desktop.containerdesktopbackend.controller;
 
+import com.alibaba.fastjson2.JSONObject;
 import container.desktop.api.entity.Container;
 import container.desktop.api.entity.User;
 import container.desktop.api.exception.ContainerCreationException;
@@ -22,7 +23,7 @@ import java.util.List;
 @RequestMapping("/containers")
 public class ContainerController {
 
-    private static final Logger log = LoggerFactory.getLogger(ContainerController.class);
+    private static final Logger log = LoggerFactory.getLogger("容器服务控制器");
     private final ContainerService<BackendContainer> containerService;
 
     public ContainerController(
@@ -50,7 +51,7 @@ public class ContainerController {
         log.info("用户{}请求创建容器", user.getUsername());
         String id;
         try {
-            id = containerService.create(
+            id = containerService.create( containerCreationDTO.customName(),
                     containerCreationDTO.imageId(), containerCreationDTO.networkId(),
                     containerCreationDTO.rootDisk(), containerCreationDTO.vcpus(),
                     containerCreationDTO.ram(), containerCreationDTO.command(),
@@ -132,5 +133,11 @@ public class ContainerController {
                 .message("更新容器成功")
                 .build();
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping("/maxVCPUs")
+    public ResponseEntity<Result> maxVCPUs(){
+        Integer maxVCPUs = containerService.getMaxVCPUs();
+        return new ResponseEntity<>(Result.ok().setDetails(JSONObject.of("maxVCPUs", maxVCPUs)), HttpStatus.OK);
     }
 }

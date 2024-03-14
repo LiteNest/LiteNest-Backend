@@ -8,6 +8,8 @@ import container.desktop.api.repository.ImageRepository;
 import container.desktop.api.service.ImageService;
 import container.desktop.containerdesktopbackend.entity.BackendImage;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,8 @@ import java.util.List;
 
 @Service("image_service")
 public class BackendImageService implements ImageService<BackendImage> {
+
+    private final Logger logger = LoggerFactory.getLogger("镜像服务");
 
     @Value("${container.auto-flush}")
     private boolean autoFlush;
@@ -50,9 +54,13 @@ public class BackendImageService implements ImageService<BackendImage> {
 
     @Override
     public void flush() {
+        logger.info("开始刷新镜像数据库");
+        long start = System.nanoTime();
         List<BackendImage> images = new ArrayList<>();
-        client.listImagesCmd().exec().stream().forEach(
+        List<String> id = imageImageRepository.findAll().stream().map(BackendImage::getId).toList();
+        client.listImagesCmd().exec().forEach(
                 image -> {
+                    if (!id.contains(image.getId())) {
                     BackendImage.BackendImageBuilder imageBuilder = BackendImage.builder()
                             .id(image.getId());
                     if (image.getRepoTags().length >= 1){
@@ -60,9 +68,13 @@ public class BackendImageService implements ImageService<BackendImage> {
                     }
                     BackendImage backendImage = imageBuilder.build();
                     images.add(backendImage);
+                    }
                 }
         );
         imageImageRepository.saveAllAndFlush(images);
+        long end = System.nanoTime();
+        logger.info("镜像数据库刷新完毕");
+        logger.info("镜像数据库刷新用时{}ms", (end-start)/1.0e6);
     }
 
     @Override

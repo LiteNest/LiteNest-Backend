@@ -21,6 +21,8 @@ import container.desktop.containerdesktopbackend.event.ContainerCreatedEvent;
 import container.desktop.containerdesktopbackend.event.ContainerRemovedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,7 @@ import java.util.Optional;
 @Service("container_service")
 public class BackendContainerService implements ContainerService<BackendContainer> {
 
+    private static final Logger log = LoggerFactory.getLogger("容器服务");
     private final ContainerRepository<BackendContainer> containerRepository;
     private final ImageRepository<BackendImage> imageImageRepository;
     private final NetworkRepository<BackendNetwork> networkRepository;
@@ -76,6 +79,7 @@ public class BackendContainerService implements ContainerService<BackendContaine
 
     @Override
     public String create(String name,
+                         String customName,
                          String imageId,
                          String networkId,
                          Integer rootDisk,
@@ -116,6 +120,7 @@ public class BackendContainerService implements ContainerService<BackendContaine
         String id = createContainerCmd.exec().getId();
         BackendContainer container = BackendContainer.builder()
                 .id(id)
+                .customName(customName)
                 .RAM(RAM)
                 .rootDisk(rootDisk)
                 .Vcpus(vcpu)
@@ -134,14 +139,15 @@ public class BackendContainerService implements ContainerService<BackendContaine
     }
 
     @Override
-    public String create(String imageId,
+    public String create(String customName,
+                         String imageId,
                          String networkId,
                          Integer rootDisk,
                          Integer vcpu,
                          Integer RAM,
                          String command,
                          @NotNull String username) throws ContainerCreationException{
-        return create(null, imageId, networkId, rootDisk, vcpu, RAM, command, username);
+        return create(null, customName, imageId, networkId, rootDisk, vcpu, RAM, command, username);
     }
 
     @Override
@@ -157,12 +163,31 @@ public class BackendContainerService implements ContainerService<BackendContaine
 
     }
 
-    public void start(String containerId) {
-        client.startContainerCmd(containerId).exec();
+    @Override
+    public Integer getMaxVCPUs() {
+        return Runtime.getRuntime().availableProcessors();
     }
 
-    public void stop(String containerId) {
+    public void start(Container container) {
+        String containerId = container.getId();
+        log.info("启动容器：{}", containerId);
+        container.setPowerStatus(Container.PowerStatus.STARTING);
+        containerRepository.save((BackendContainer) container);
+        client.startContainerCmd(containerId).exec();
+        log.info("容器{}已启动", containerId);
+        container.setPowerStatus(Container.PowerStatus.ACTIVE);
+        containerRepository.saveAndFlush((BackendContainer) container);
+    }
+
+    public void stop(Container container) {
+        String containerId = container.getId();
+        log.info("开始关闭容器：{}", containerId);
+        container.setPowerStatus(Container.PowerStatus.STOPPING);
+        containerRepository.saveAndFlush((BackendContainer) container);
         client.stopContainerCmd(containerId).exec();
+        log.info("容器{}已关闭", containerId);
+        container.setPowerStatus(Container.PowerStatus.POWER_OFF);
+        containerRepository.saveAndFlush((BackendContainer) container);
     }
 
     @Override
@@ -172,10 +197,14 @@ public class BackendContainerService implements ContainerService<BackendContaine
         BackendContainer container = repoContainer.get();
         if (container.getPowerStatus() != entity.getPowerStatus()) {
             if (entity.getPowerStatus() == Container.PowerStatus.ACTIVE) {
-                start(entity.getId());
+                start(entity);
+            } else if (entity.getPowerStatus() == Container.PowerStatus.POWER_OFF) {
+                stop(entity);
             } else {
-                stop(entity.getId());
+                // 只能将容器状态设置为关机或运行，不能将状态设为“关闭中”或“开启中”
+                log.warn("不能将容器{}设置为状态{}", container.getId(), entity.getPowerStatus());
             }
+
             containerRepository.saveAndFlush(entity);
         }
     }
