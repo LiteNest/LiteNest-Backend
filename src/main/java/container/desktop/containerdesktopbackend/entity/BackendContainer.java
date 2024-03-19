@@ -8,10 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Entity
 @Data
@@ -77,16 +74,25 @@ public class BackendContainer implements Container {
 
     @Override
     public void addDataVolumeId(String volumeId) {
+        if (dataVolumeIds == null) {
+            dataVolumeIds = new LinkedList<>();
+        }
         dataVolumeIds.add(volumeId);
     }
 
     @Override
     public void removeDataVolumeId(String volumeId) {
+        if (dataVolumeIds == null) {
+            dataVolumeIds = new LinkedList<>();
+        }
         dataVolumeIds.remove(volumeId);
     }
 
     @Override
     public void addDataVolumeIds(Collection<String> ids) {
+        if (dataVolumeIds == null) {
+            dataVolumeIds = new LinkedList<>();
+        }
         dataVolumeIds.addAll(ids);
     }
 }

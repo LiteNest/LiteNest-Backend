@@ -3,6 +3,8 @@ package container.desktop.containerdesktopbackend.DTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public record ContainerCreationDTO(
    Integer vcpus,
    Integer ram,
@@ -10,6 +12,7 @@ public record ContainerCreationDTO(
    @JsonProperty("image_id") String imageId,
    @JsonProperty("network_id") String networkId,
    @JsonProperty("custom_name") String customName,
-   @Nullable String command
+   @Nullable String command,
+   @JsonProperty("volumes") @Nullable List<VolumeMountingDTO> volumeMountingDTOs
 ) {
 }

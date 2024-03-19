@@ -3,6 +3,7 @@ package container.desktop.containerdesktopbackend.controller;
 import com.alibaba.fastjson2.JSONObject;
 import container.desktop.api.entity.Container;
 import container.desktop.api.entity.User;
+import container.desktop.api.entity.Volume;
 import container.desktop.api.exception.ContainerCreationException;
 import container.desktop.api.service.ContainerService;
 import container.desktop.containerdesktopbackend.DTO.ContainerCreationDTO;
@@ -17,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -51,11 +53,27 @@ public class ContainerController {
         log.info("用户{}请求创建容器", user.getUsername());
         String id;
         try {
-            id = containerService.create( containerCreationDTO.customName(),
+            List<Volume.VolumeBinding> volumeBindings = new ArrayList<>();
+            if (containerCreationDTO.volumeMountingDTOs() != null) {
+                volumeBindings.addAll(containerCreationDTO.volumeMountingDTOs().stream().map(
+                        volumeMountingDTO -> new Volume.VolumeBinding() {
+                            @Override
+                            public String getVolumeId() {
+                                return volumeMountingDTO.id();
+                            }
+
+                            @Override
+                            public String getMountPath() {
+                                return volumeMountingDTO.path();
+                            }
+                        }
+                ).toList());
+            }
+            id = containerService.create(containerCreationDTO.customName(),
                     containerCreationDTO.imageId(), containerCreationDTO.networkId(),
                     containerCreationDTO.rootDisk(), containerCreationDTO.vcpus(),
                     containerCreationDTO.ram(), containerCreationDTO.command(),
-                    user.getUsername()
+                    user.getUsername(), volumeBindings
             );
         } catch (ContainerCreationException e) {
             Result result = Result.builder()

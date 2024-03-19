@@ -7,16 +7,10 @@ import com.github.dockerjava.api.model.*;
 import container.desktop.api.entity.Container;
 import container.desktop.api.entity.User;
 import container.desktop.api.exception.ContainerCreationException;
-import container.desktop.api.repository.ContainerRepository;
-import container.desktop.api.repository.ImageRepository;
-import container.desktop.api.repository.NetworkRepository;
-import container.desktop.api.repository.UserRepository;
+import container.desktop.api.repository.*;
 import container.desktop.api.service.ContainerService;
 import container.desktop.api.service.PortService;
-import container.desktop.containerdesktopbackend.entity.BackendContainer;
-import container.desktop.containerdesktopbackend.entity.BackendImage;
-import container.desktop.containerdesktopbackend.entity.BackendNetwork;
-import container.desktop.containerdesktopbackend.entity.BackendUser;
+import container.desktop.containerdesktopbackend.entity.*;
 import container.desktop.containerdesktopbackend.event.ContainerCreatedEvent;
 import container.desktop.containerdesktopbackend.event.ContainerRemovedEvent;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +22,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,6 +34,7 @@ public class BackendContainerService implements ContainerService<BackendContaine
     private final ImageRepository<BackendImage> imageImageRepository;
     private final NetworkRepository<BackendNetwork> networkRepository;
     private final UserRepository<BackendUser> userRepository;
+    private final VolumeRepository<BackendVolume> volumeRepository;
     private final DockerClient client;
     private final PortService portService;
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -47,6 +43,7 @@ public class BackendContainerService implements ContainerService<BackendContaine
             @Qualifier("container_repo") ContainerRepository<BackendContainer> containerRepository,
             ImageRepository<BackendImage> imageImageRepository,
             NetworkRepository<BackendNetwork> networkRepository,
+            VolumeRepository<BackendVolume> volumeRepository,
             @Qualifier("user_repo") UserRepository<BackendUser> userRepository,
             DockerClient client,
             @Qualifier("port_service") PortService portService,
@@ -55,6 +52,7 @@ public class BackendContainerService implements ContainerService<BackendContaine
         this.imageImageRepository = imageImageRepository;
         this.networkRepository = networkRepository;
         this.userRepository = userRepository;
+        this.volumeRepository = volumeRepository;
         this.client = client;
         this.portService = portService;
         this.applicationEventPublisher = applicationEventPublisher;
@@ -175,11 +173,25 @@ public class BackendContainerService implements ContainerService<BackendContaine
         // 为容器实体新增数据卷挂载配置
         container.addDataVolumeIds(volumeIds.stream().map(volumeBinding -> volumeBinding.getVolumeId()).toList());
         containerRepository.saveAndFlush(container);
+        List<BackendVolume> backendVolumes = new LinkedList<>();
+        volumeIds.forEach(volumeBinding -> {
+            Optional<BackendVolume> optional = volumeRepository.findById(volumeBinding.getVolumeId());
+            assert optional.isPresent();
+            BackendVolume backendVolume = optional.get();
+            backendVolume.addContainerId(id);
+            backendVolumes.add(backendVolume);
+        });
+        volumeRepository.saveAllAndFlush(backendVolumes);
         BackendUser backendUser = userOptional.get();
         backendUser.addContainer(id);
         userRepository.saveAndFlush(backendUser);
         applicationEventPublisher.publishEvent(new ContainerCreatedEvent(this, container, userOptional.get()));
         return id;
+    }
+
+    @Override
+    public String create(String customName, String imageId, String networkId, Integer rootDisk, Integer vcpu, Integer RAM, String command, @NotNull String username, List<container.desktop.api.entity.Volume.VolumeBinding> volumeIds) throws ContainerCreationException {
+        return create(null, customName, imageId, networkId, rootDisk, vcpu, RAM, command, username, volumeIds);
     }
 
     @Override

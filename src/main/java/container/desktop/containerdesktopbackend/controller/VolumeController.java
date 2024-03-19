@@ -29,7 +29,7 @@ public class VolumeController {
 
         Result result = Result.builder()
                 .code(HttpStatus.CREATED.value())
-                .message(name)
+                .details(volumeService.findById(name))
                 .build();
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
