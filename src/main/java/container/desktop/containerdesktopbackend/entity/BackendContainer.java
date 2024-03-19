@@ -46,6 +46,10 @@ public class BackendContainer implements Container {
     @Column(name = "owner_id")
     @JsonProperty("owner_id")
     private Long ownerId;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "container_volume")
+    @JsonProperty("data_volume_ids")
+    private List<String> dataVolumeIds;
     private transient final Map<String, Object> attributes = new HashMap<>();
 
     @Override
@@ -68,4 +72,13 @@ public class BackendContainer implements Container {
         attributes.clear();
     }
 
+    @Override
+    public void addDataVolumeId(String volumeId) {
+        dataVolumeIds.add(volumeId);
+    }
+
+    @Override
+    public void removeDataVolumeId(String volumeId) {
+        dataVolumeIds.remove(volumeId);
+    }
 }

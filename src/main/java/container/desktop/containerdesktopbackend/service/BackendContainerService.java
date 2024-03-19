@@ -108,7 +108,7 @@ public class BackendContainerService implements ContainerService<BackendContaine
         Integer host_port = portService.randomPort();
         if (port != null) {
             hostConfig.withPortBindings(
-                    PortBinding.parse( +host_port + ":" + port)
+                    PortBinding.parse( host_port + ":" + port)
             );
         }
         CreateContainerCmd createContainerCmd = client.createContainerCmd(imageId)
