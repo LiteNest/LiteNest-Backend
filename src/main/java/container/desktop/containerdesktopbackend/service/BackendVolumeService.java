@@ -3,10 +3,16 @@ package container.desktop.containerdesktopbackend.service;
 import com.github.dockerjava.api.DockerClient;
 import container.desktop.api.entity.Volume;
 import container.desktop.api.exception.UpdatingException;
+import container.desktop.api.exception.VolumeInUseException;
+import container.desktop.api.repository.UserRepository;
 import container.desktop.api.repository.VolumeRepository;
 import container.desktop.api.service.VolumeService;
+import container.desktop.containerdesktopbackend.entity.BackendUser;
 import container.desktop.containerdesktopbackend.entity.BackendVolume;
+import container.desktop.containerdesktopbackend.event.VolumeCreatedEvent;
+import container.desktop.containerdesktopbackend.event.VolumeRemovedEvent;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,10 +24,12 @@ public class BackendVolumeService implements VolumeService<BackendVolume> {
 
     private final VolumeRepository<BackendVolume> volumeRepository;
     private final DockerClient client;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
-    public BackendVolumeService(VolumeRepository<BackendVolume> volumeRepository, DockerClient client) {
+    public BackendVolumeService(VolumeRepository<BackendVolume> volumeRepository, DockerClient client, ApplicationEventPublisher applicationEventPublisher) {
         this.volumeRepository = volumeRepository;
         this.client = client;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
 
@@ -49,12 +57,12 @@ public class BackendVolumeService implements VolumeService<BackendVolume> {
     }
 
     @Override
-    public String create(Integer size) {
-        return create(size, null);
+    public String create(Integer size, Long userId) {
+        return create(size, null, userId);
     }
 
     @Override
-    public String create(Integer size, String customName) {
+    public String create(Integer size, String customName, Long userId) {
         String name = client.createVolumeCmd()
                 .withDriver("loopback")
                 .withDriverOpts(Map.of(
@@ -63,12 +71,30 @@ public class BackendVolumeService implements VolumeService<BackendVolume> {
                         "fs", "ext4"
                 ))
                 .exec().getName();
-        volumeRepository.saveAndFlush(BackendVolume.builder()
+        BackendVolume volume = BackendVolume.builder()
                 .customName(customName)
-                        .id(name)
-                        .size(size)
-                .build());
+                .ownerId(userId)
+                .id(name)
+                .size(size)
+                .build();
+        volumeRepository.saveAndFlush(volume);
+        applicationEventPublisher.publishEvent(new VolumeCreatedEvent(this, userId, volume));
         return name;
+    }
+
+    @Override
+    public void delete(String id) throws VolumeInUseException {
+        Optional<BackendVolume> optional = volumeRepository.findById(id);
+        assert optional.isPresent();
+        BackendVolume backendVolume = optional.get();
+        if (backendVolume.getContainerIds() == null || backendVolume.getContainerIds().isEmpty()) {
+            client.removeVolumeCmd(id).exec();
+            volumeRepository.delete(backendVolume);
+            applicationEventPublisher.publishEvent(new VolumeRemovedEvent(this, backendVolume));
+        } else {
+            throw new VolumeInUseException(backendVolume.getContainerIds());
+        }
+
     }
 
     @Override

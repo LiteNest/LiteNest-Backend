@@ -1,17 +1,16 @@
 package container.desktop.containerdesktopbackend.controller;
 
 import com.alibaba.fastjson2.JSONObject;
+import container.desktop.api.entity.User;
 import container.desktop.api.service.VolumeService;
 import container.desktop.containerdesktopbackend.DTO.VolumeCreationDTO;
 import container.desktop.containerdesktopbackend.Result;
 import container.desktop.containerdesktopbackend.entity.BackendVolume;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/volumes")
@@ -24,13 +23,34 @@ public class VolumeController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<Result> create(@RequestBody VolumeCreationDTO volumeCreationDTO) {
-        String name = volumeService.create(volumeCreationDTO.size());
+    public ResponseEntity<Result> create(@RequestBody VolumeCreationDTO volumeCreationDTO,
+                                         HttpServletRequest request) {
+        User user = (User) request.getAttribute("user");
+        String name = volumeService.create(volumeCreationDTO.size(), volumeCreationDTO.customName(), user.getId());
 
         Result result = Result.builder()
                 .code(HttpStatus.CREATED.value())
                 .details(volumeService.findById(name))
                 .build();
         return new ResponseEntity<>(result, HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/{volumeId}")
+    public ResponseEntity<Result> delete(@PathVariable String volumeId,
+                                         HttpServletRequest request) {
+        User user = (User) request.getAttribute("user");
+        if (!user.hasVolume(volumeId)) {
+            Result result = Result.builder()
+                    .code(HttpStatus.NOT_FOUND.value())
+                    .message("用户" + user.getUsername() + "不持有卷" + volumeId)
+                    .build();
+            return new ResponseEntity<>(result, HttpStatus.NOT_FOUND);
+        } else {
+            volumeService.delete(volumeId);
+            Result result = Result.builder()
+                    .code(HttpStatus.OK.value())
+                    .build();
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
     }
 }

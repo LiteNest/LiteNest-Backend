@@ -1,5 +1,6 @@
 package container.desktop.containerdesktopbackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import container.desktop.api.entity.Volume;
@@ -35,6 +36,9 @@ public class BackendVolume implements Volume {
     private String mountPoint;
     @Column(name = "size")
     private Integer size;
+    @Column(name = "owner_id")
+    @JsonIgnore
+    private Long ownerId;
 
     private transient Map<String, Object> attributes = new HashMap<>();
 

@@ -1,5 +1,6 @@
 package container.desktop.containerdesktopbackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import container.desktop.api.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,10 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Entity
 @Data
@@ -46,6 +44,12 @@ public class BackendUser implements User {
     @CollectionTable(name = "user_metadata")
     private Map<String, String> metadata;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Column(name = "volume_id")
+    @CollectionTable(name = "user_volume_ids")
+    @JsonProperty("owned_volume_ids")
+    private List<String> volumeIds;
+
 
 
     @Override
@@ -70,6 +74,30 @@ public class BackendUser implements User {
     public void removeContainerId(String id) {
         if (getContainerIds() == null) return;
         getContainerIds().remove(id);
+    }
+
+    @Override
+    public void addVolumeId(String volumeId) {
+        if (this.volumeIds == null) {
+            this.volumeIds = new LinkedList<>();
+        }
+        volumeIds.add(volumeId);
+    }
+
+    @Override
+    public void addVolumeIds(Collection<String> volumeIds) {
+        if (this.volumeIds == null) {
+            this.volumeIds = new LinkedList<>();
+        }
+        this.volumeIds.addAll(volumeIds);
+    }
+
+    @Override
+    public void removeVolumeId(String volumeId) {
+        if (this.volumeIds == null) {
+            this.volumeIds = new LinkedList<>();
+        }
+        volumeIds.remove(volumeId);
     }
 
     @Override
