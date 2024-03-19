@@ -3,8 +3,7 @@ package container.desktop.containerdesktopbackend.service;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.exception.NotFoundException;
-import com.github.dockerjava.api.model.HostConfig;
-import com.github.dockerjava.api.model.PortBinding;
+import com.github.dockerjava.api.model.*;
 import container.desktop.api.entity.Container;
 import container.desktop.api.entity.User;
 import container.desktop.api.exception.ContainerCreationException;
@@ -88,6 +87,32 @@ public class BackendContainerService implements ContainerService<BackendContaine
                          Integer RAM,
                          String command,
                          @NotNull String username) throws ContainerCreationException {
+        return create(name, customName, imageId, networkId, rootDisk, vcpu, RAM, command, username, List.of());
+    }
+
+    @Override
+    public String create(String customName,
+                         String imageId,
+                         String networkId,
+                         Integer rootDisk,
+                         Integer vcpu,
+                         Integer RAM,
+                         String command,
+                         @NotNull String username) throws ContainerCreationException{
+        return create(null, customName, imageId, networkId, rootDisk, vcpu, RAM, command, username, List.of());
+    }
+
+    @Override
+    public String create(String name,
+                         String customName,
+                         String imageId,
+                         String networkId,
+                         Integer rootDisk,
+                         Integer vcpu,
+                         Integer RAM,
+                         String command,
+                         @NotNull String username,
+                         List<container.desktop.api.entity.Volume.VolumeBinding> volumeIds) throws ContainerCreationException {
         if (command.isBlank()) {
             command = "tail -f /dev/null";
         }
@@ -105,6 +130,12 @@ public class BackendContainerService implements ContainerService<BackendContaine
                 .withDiskQuota(rootDisk.longValue() * 1024 * 1024 * 1024)
                 .withCpuCount(vcpu.longValue())
                 .withMemory(RAM.longValue() * 1024 * 1024)
+                .withBinds(volumeIds.stream().map(
+                        volumeBinding -> new Bind(
+                            volumeBinding.getVolumeId(),
+                            new Volume(volumeBinding.getMountPath())
+                        )
+                ).toList())
                 .withNetworkMode(networkOptional.get().getName());
         Integer host_port = null;
         if (port != null) {
@@ -122,11 +153,13 @@ public class BackendContainerService implements ContainerService<BackendContaine
         }
         CreateContainerCmd createContainerCmd = client.createContainerCmd(imageId)
                 .withCmd(Arrays.stream(command.split("\\s+")).toList())
+
                 .withHostConfig(hostConfig);
         if (name != null){
             createContainerCmd.withName(name);
         }
         String id = createContainerCmd.exec().getId();
+        // 生成容器实体存入数据库
         BackendContainer container = BackendContainer.builder()
                 .id(id)
                 .customName(customName)
@@ -139,25 +172,14 @@ public class BackendContainerService implements ContainerService<BackendContaine
                 .ownerId(userOptional.get().getId())
                 .port(host_port)
                 .build();
+        // 为容器实体新增数据卷挂载配置
+        container.addDataVolumeIds(volumeIds.stream().map(volumeBinding -> volumeBinding.getVolumeId()).toList());
         containerRepository.saveAndFlush(container);
-
         BackendUser backendUser = userOptional.get();
         backendUser.addContainer(id);
         userRepository.saveAndFlush(backendUser);
         applicationEventPublisher.publishEvent(new ContainerCreatedEvent(this, container, userOptional.get()));
         return id;
-    }
-
-    @Override
-    public String create(String customName,
-                         String imageId,
-                         String networkId,
-                         Integer rootDisk,
-                         Integer vcpu,
-                         Integer RAM,
-                         String command,
-                         @NotNull String username) throws ContainerCreationException{
-        return create(null, customName, imageId, networkId, rootDisk, vcpu, RAM, command, username);
     }
 
     @Override

@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,5 +83,10 @@ public class BackendContainer implements Container {
     @Override
     public void removeDataVolumeId(String volumeId) {
         dataVolumeIds.remove(volumeId);
+    }
+
+    @Override
+    public void addDataVolumeIds(Collection<String> ids) {
+        dataVolumeIds.addAll(ids);
     }
 }
