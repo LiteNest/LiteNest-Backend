@@ -2,6 +2,7 @@ package container.desktop.containerdesktopbackend.service;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
+import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.PortBinding;
 import container.desktop.api.entity.Container;
@@ -105,11 +106,19 @@ public class BackendContainerService implements ContainerService<BackendContaine
                 .withCpuCount(vcpu.longValue())
                 .withMemory(RAM.longValue() * 1024 * 1024)
                 .withNetworkMode(networkOptional.get().getName());
-        Integer host_port = portService.randomPort();
+        Integer host_port = null;
         if (port != null) {
-            hostConfig.withPortBindings(
-                    PortBinding.parse( host_port + ":" + port)
-            );
+            // 循环找端口号，避免冲突
+            while (true){
+                host_port = portService.randomPort();
+                // 如果找不到与当前随机分配的端口相同的端口号，则说明该端口号是可用的
+                if (containerRepository.findByPort(host_port).isEmpty()) {
+                    hostConfig.withPortBindings(
+                            PortBinding.parse( host_port + ":" + port)
+                    );
+                    break;
+                }
+            }
         }
         CreateContainerCmd createContainerCmd = client.createContainerCmd(imageId)
                 .withCmd(Arrays.stream(command.split("\\s+")).toList())
@@ -128,6 +137,7 @@ public class BackendContainerService implements ContainerService<BackendContaine
                 .networkIds(List.of(networkId))
                 .powerStatus(Container.PowerStatus.POWER_OFF)
                 .ownerId(userOptional.get().getId())
+                .port(host_port)
                 .build();
         containerRepository.saveAndFlush(container);
 
@@ -152,10 +162,17 @@ public class BackendContainerService implements ContainerService<BackendContaine
 
     @Override
     public void delete(String containerId) {
-        client.killContainerCmd(containerId);
-        client.removeContainerCmd(containerId).withForce(true).exec();
-        applicationEventPublisher.publishEvent(new ContainerRemovedEvent(this, findById(containerId)));
-        containerRepository.deleteAllByIdInBatch(List.of(containerId));
+        try {
+            client.killContainerCmd(containerId);
+            client.removeContainerCmd(containerId).withForce(true).exec();
+        } catch (NotFoundException ignored) {
+
+        } finally {
+            applicationEventPublisher.publishEvent(new ContainerRemovedEvent(this, findById(containerId)));
+            containerRepository.deleteAllByIdInBatch(List.of(containerId));
+        }
+
+
     }
 
     @Override

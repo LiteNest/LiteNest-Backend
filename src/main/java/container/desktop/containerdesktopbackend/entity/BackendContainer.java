@@ -50,6 +50,8 @@ public class BackendContainer implements Container {
     @CollectionTable(name = "container_volume")
     @JsonProperty("data_volume_ids")
     private List<String> dataVolumeIds;
+    @Column(name = "port")
+    private Integer port;
     private transient final Map<String, Object> attributes = new HashMap<>();
 
     @Override
