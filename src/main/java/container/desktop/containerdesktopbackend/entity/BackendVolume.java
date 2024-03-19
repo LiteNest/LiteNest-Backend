@@ -26,6 +26,9 @@ public class BackendVolume implements Volume {
     @Id
     @Column(name = "id")
     private String id;
+    @Column(name = "custom_name")
+    @JsonProperty("custom_name")
+    private String customName;
     @Column(name = "container_id")
     @JsonProperty("container_id")
     private String containerId;
