@@ -6,7 +6,11 @@ import container.desktop.api.service.UserService;
 import container.desktop.containerdesktopbackend.DTO.UserDTO;
 import container.desktop.containerdesktopbackend.Result;
 import container.desktop.containerdesktopbackend.entity.BackendUser;
+import container.desktop.containerdesktopbackend.listener.ContextInitializer;
 import container.desktop.containerdesktopbackend.service.JwtService;
+import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,11 +20,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class UserController {
 
-    private final UserService<BackendUser> userService;
+
     private final JwtService jwtService;
 
-    public UserController(UserService<BackendUser> userService, JwtService jwtService) {
-        this.userService = userService;
+    @Resource(name = "user_service")
+    private UserService<BackendUser> userService;
+
+    public UserController(JwtService jwtService) {
+//        this.userService = userService;
         this.jwtService = jwtService;
     }
 

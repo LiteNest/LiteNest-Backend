@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONObject;
 import container.desktop.api.entity.User;
 import container.desktop.api.service.VolumeService;
 import container.desktop.containerdesktopbackend.DTO.VolumeCreationDTO;
+import container.desktop.containerdesktopbackend.DTO.VolumeUpdatingDTO;
 import container.desktop.containerdesktopbackend.Result;
 import container.desktop.containerdesktopbackend.entity.BackendVolume;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,6 +52,24 @@ public class VolumeController {
                     .code(HttpStatus.OK.value())
                     .build();
             return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+    }
+
+    @PutMapping("/{volumeId}")
+    public ResponseEntity<Result> update(@PathVariable String volumeId,
+                                         HttpServletRequest request,
+                                         @RequestBody VolumeUpdatingDTO volumeUpdatingDTO){
+        User user = (User) request.getAttribute("user");
+        if (!user.hasVolume(volumeId)) {
+            Result result = Result.builder()
+                    .code(404)
+                    .message("用户" + user.getUsername() + "不存在卷" + volumeId)
+                    .build();
+            return new ResponseEntity<>(result, HttpStatus.NOT_FOUND);
+        } else {
+            // todo 变更具体逻辑
+            volumeService.resize(volumeId, volumeUpdatingDTO.size(), user.getId());
+            return null;
         }
     }
 }

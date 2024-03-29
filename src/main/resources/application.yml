@@ -1,9 +1,13 @@
 spring:
+  config:
+    import:
+      - classpath:BeanConfiguration.yml
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: "jdbc:mysql://localhost:3306/cloud?autoReconnect=true"
+    url: "jdbc:mysql://192.168.117.20:3306/cloud?autoReconnect=true"
     username: root
-    password: "6ms2fT87UNvugs9qcjVgVvjDLrL98tFEo0yi5veZcWpRbf80JvjziDX1LNUZbs5GK0dZ1Hj9Xtrri2QnQJVMMucxTHAJLF88uy0v"
+#    password: "6ms2fT87UNvugs9qcjVgVvjDLrL98tFEo0yi5veZcWpRbf80JvjziDX1LNUZbs5GK0dZ1Hj9Xtrri2QnQJVMMucxTHAJLF88uy0v"
+    password: "123456"
   jpa:
     hibernate:
       ddl-auto: update
@@ -35,6 +39,7 @@ container:
   response-timeout: 45
   response-timeout-unit: SECOND
   auto-flush: true
+  middle-image: "ubuntu:latest"
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%clr(%level)] %clr(%-15.15logger){cyan}：%msg%n"
