@@ -21,7 +21,7 @@ public class BackendUser implements User {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private java.lang.Long id;
     @Column(name = "username")
     private String username;
     @Column(name = "password")

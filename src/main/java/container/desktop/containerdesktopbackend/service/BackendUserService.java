@@ -76,6 +76,7 @@ public class BackendUserService implements UserService<BackendUser> {
         return optional.orElse(null);
     }
 
+
     @Nullable
     @Override
     public User findById(Long id) {

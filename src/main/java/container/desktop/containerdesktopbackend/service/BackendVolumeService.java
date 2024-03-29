@@ -12,6 +12,7 @@ import container.desktop.api.service.VolumeService;
 import container.desktop.containerdesktopbackend.entity.BackendVolume;
 import container.desktop.containerdesktopbackend.event.VolumeCreatedEvent;
 import container.desktop.containerdesktopbackend.event.VolumeRemovedEvent;
+import container.desktop.containerdesktopbackend.event.VolumeResizedEvent;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -124,6 +125,7 @@ public class BackendVolumeService implements VolumeService<BackendVolume> {
         backendVolume.setId(newId);
         backendVolume.setSize(size);
         volumeRepository.saveAndFlush(backendVolume);
+        applicationEventPublisher.publishEvent(new VolumeResizedEvent(this, userId, id, newId));
         return newId;
     }
 
