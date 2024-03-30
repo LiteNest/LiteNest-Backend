@@ -5,6 +5,8 @@ import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.core.command.ExecStartResultCallback;
 import container.desktop.api.entity.Volume;
+import container.desktop.api.exception.IllegalVolumeSizeException;
+import container.desktop.api.exception.ResourceNotFoundException;
 import container.desktop.api.exception.UpdatingException;
 import container.desktop.api.exception.VolumeInUseException;
 import container.desktop.api.repository.VolumeRepository;
@@ -103,7 +105,16 @@ public class BackendVolumeService implements VolumeService<BackendVolume> {
     }
 
     @Override
-    public String resize(String id, Integer size, Long userId) {
+    public String resize(String id, Integer size, Long userId)
+            throws IllegalVolumeSizeException, ResourceNotFoundException {
+        Optional<BackendVolume> optional = volumeRepository.findById(id);
+        if (optional.isEmpty()) {
+            throw new ResourceNotFoundException();
+        }
+        BackendVolume volume = optional.get();
+        if (size < volume.getSize()) {
+            throw new IllegalVolumeSizeException("新的卷容量不能比原来的小", size, id);
+        }
         String newId = create(size, userId);
         String containerId = client.createContainerCmd(middleImageName).withHostConfig(
                 HostConfig.newHostConfig().withBinds(
@@ -118,13 +129,11 @@ public class BackendVolumeService implements VolumeService<BackendVolume> {
             throw new RuntimeException(e);
         }
         client.removeContainerCmd(containerId).withForce(true).withRemoveVolumes(false).exec();
-        Optional<BackendVolume> optional = volumeRepository.findById(id);
-        assert optional.isPresent();
-        BackendVolume backendVolume = optional.get();
+
         deleteById(id);
-        backendVolume.setId(newId);
-        backendVolume.setSize(size);
-        volumeRepository.saveAndFlush(backendVolume);
+        volume.setId(newId);
+        volume.setSize(size);
+        volumeRepository.saveAndFlush(volume);
         applicationEventPublisher.publishEvent(new VolumeResizedEvent(this, userId, id, newId));
         return newId;
     }

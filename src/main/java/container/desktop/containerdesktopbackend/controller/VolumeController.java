@@ -1,6 +1,9 @@
 package container.desktop.containerdesktopbackend.controller;
 
 import container.desktop.api.entity.User;
+import container.desktop.api.entity.Volume;
+import container.desktop.api.exception.IllegalVolumeSizeException;
+import container.desktop.api.exception.ResourceNotFoundException;
 import container.desktop.api.service.VolumeService;
 import container.desktop.containerdesktopbackend.DTO.VolumeCreationDTO;
 import container.desktop.containerdesktopbackend.DTO.VolumeUpdatingDTO;
@@ -11,6 +14,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/volumes")
@@ -67,8 +72,31 @@ public class VolumeController {
             return new ResponseEntity<>(result, HttpStatus.NOT_FOUND);
         } else {
             // todo 变更具体逻辑
-            volumeService.resize(volumeId, volumeUpdatingDTO.size(), user.getId());
-            return null;
+            Result result;
+            HttpStatus httpStatus;
+            try {
+                String id = volumeService.resize(volumeId, volumeUpdatingDTO.size(), user.getId());
+                result = Result.ok().setDetails(volumeService.findById(id));
+                httpStatus = HttpStatus.OK;
+            } catch (IllegalVolumeSizeException e) {
+                result = Result.builder()
+                        .code(HttpStatus.UNPROCESSABLE_ENTITY.value())
+                        .message(e.getMessage())
+                        .build();
+                httpStatus = HttpStatus.UNPROCESSABLE_ENTITY;
+            } catch (ResourceNotFoundException e) {
+                result = Result.notFound().setMessage(e.getMessage());
+                httpStatus = HttpStatus.NOT_FOUND;
+            }
+            return new ResponseEntity<>(result, httpStatus);
         }
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<Result> list(HttpServletRequest request) {
+        User user = (User) request.getAttribute("user");
+        List<? extends Volume> volumes = volumeService.findByIds(user.getVolumeIds());
+        Result result = Result.ok().setDetails(volumes);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }
