@@ -5,6 +5,7 @@ import container.desktop.api.entity.Container;
 import container.desktop.api.entity.User;
 import container.desktop.api.entity.Volume;
 import container.desktop.api.exception.ContainerCreationException;
+import container.desktop.api.exception.ResourceNotFoundException;
 import container.desktop.api.service.ContainerService;
 import container.desktop.containerdesktopbackend.DTO.ContainerCreationDTO;
 import container.desktop.containerdesktopbackend.DTO.ContainerUpdatingDTO;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/containers")
@@ -69,11 +71,12 @@ public class ContainerController {
                         }
                 ).toList());
             }
+            Map<String, String> env = containerCreationDTO.env() == null? Map.of(): containerCreationDTO.env();
             id = containerService.create(containerCreationDTO.customName(),
                     containerCreationDTO.imageId(), containerCreationDTO.networkId(),
                     containerCreationDTO.rootDisk(), containerCreationDTO.vcpus(),
                     containerCreationDTO.ram(), containerCreationDTO.command(),
-                    user.getUsername(), volumeBindings
+                    user.getUsername(), env, volumeBindings
             );
         } catch (ContainerCreationException e) {
             Result result = Result.builder()
@@ -81,6 +84,12 @@ public class ContainerController {
                     .message(e.getMessage())
                     .build();
             return new ResponseEntity<>(result, HttpStatus.FORBIDDEN);
+        } catch (ResourceNotFoundException e) {
+            Result result = Result.builder()
+                    .code(HttpStatus.NOT_FOUND.value())
+                    .message(e.getMessage())
+                    .build();
+            return new ResponseEntity<>(result, HttpStatus.NOT_FOUND);
         }
 
         log.info("用户{}请求创建的容器{}创建成功", user.getUsername(), id);

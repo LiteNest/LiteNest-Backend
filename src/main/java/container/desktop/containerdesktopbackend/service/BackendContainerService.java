@@ -10,6 +10,7 @@ import com.github.dockerjava.api.model.Volume;
 import container.desktop.api.entity.Container;
 import container.desktop.api.entity.User;
 import container.desktop.api.exception.ContainerCreationException;
+import container.desktop.api.exception.ResourceNotFoundException;
 import container.desktop.api.repository.*;
 import container.desktop.api.service.ContainerService;
 import container.desktop.api.service.PortService;
@@ -24,10 +25,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service("container_service")
 public class BackendContainerService implements ContainerService<BackendContainer> {
@@ -114,16 +112,35 @@ public class BackendContainerService implements ContainerService<BackendContaine
                          String command,
                          @NotNull String username,
                          List<container.desktop.api.entity.Volume.VolumeBinding> volumeIds) throws ContainerCreationException {
-        if (command.isBlank()) {
-            command = "tail -f /dev/null";
-        }
+        return create(name, customName, imageId, networkId, rootDisk, vcpu, RAM, command, username, Map.of(), volumeIds);
+    }
+
+    @Override
+    public String create(String name,
+                         String customName,
+                         String imageId,
+                         String networkId,
+                         Integer rootDisk,
+                         Integer vcpu,
+                         Integer RAM,
+                         String command,
+                         @NotNull String username,
+                         Map<String, String> env,
+                         List<container.desktop.api.entity.Volume.VolumeBinding> volumeIds) throws ContainerCreationException {
+//        if (command.isBlank()) {
+//            command = "tail -f /dev/null";
+//        }
         Optional<BackendUser> userOptional = userRepository.findByUsername(username);
         assert userOptional.isPresent();
         Optional<BackendImage> imageOptional = imageImageRepository.findById(imageId);
-        assert imageOptional.isPresent();
+        if (imageOptional.isEmpty()) {
+            log.error("收到创建容器的请求，但是指定的镜像{}不存在", imageId);
+            throw new ResourceNotFoundException("收到创建容器的请求，但是指定的镜像" + imageId + "不存在");
+        }
         if (!userOptional.get().hasRole(User.Role.ADMIN) && !imageOptional.get().isPublic()) {
             throw new ContainerCreationException("使用了非公开镜像", ContainerCreationException.Reason.USING_NON_PUBLIC_IMAGE);
         }
+
         Integer port = imageOptional.get().getRemoteDesktopPort();
         Optional<BackendNetwork> networkOptional = networkRepository.findById(networkId);
         assert networkOptional.isPresent();
@@ -133,8 +150,8 @@ public class BackendContainerService implements ContainerService<BackendContaine
                 .withMemory(RAM.longValue() * 1024 * 1024)
                 .withBinds(volumeIds.stream().map(
                         volumeBinding -> new Bind(
-                            volumeBinding.getVolumeId(),
-                            new Volume(volumeBinding.getMountPath())
+                                volumeBinding.getVolumeId(),
+                                new Volume(volumeBinding.getMountPath())
                         )
                 ).toList())
                 .withNetworkMode(networkOptional.get().getName());
@@ -153,9 +170,13 @@ public class BackendContainerService implements ContainerService<BackendContaine
             }
         }
         CreateContainerCmd createContainerCmd = client.createContainerCmd(imageId)
-                .withCmd(Arrays.stream(command.split("\\s+")).toList())
-
+                .withEnv(env.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue()).toList())
                 .withHostConfig(hostConfig);
+        if (command != null) {
+            if (!command.isBlank()) {
+                createContainerCmd.withCmd(Arrays.stream(command.split("\\s+")).toList());
+            }
+        }
         if (name != null){
             createContainerCmd.withName(name);
         }
@@ -193,8 +214,30 @@ public class BackendContainerService implements ContainerService<BackendContaine
     }
 
     @Override
-    public String create(String customName, String imageId, String networkId, Integer rootDisk, Integer vcpu, Integer RAM, String command, @NotNull String username, List<container.desktop.api.entity.Volume.VolumeBinding> volumeIds) throws ContainerCreationException {
+    public String create(String customName,
+                         String imageId,
+                         String networkId,
+                         Integer rootDisk,
+                         Integer vcpu,
+                         Integer RAM,
+                         String command,
+                         @NotNull String username,
+                         List<container.desktop.api.entity.Volume.VolumeBinding> volumeIds) throws ContainerCreationException {
         return create(null, customName, imageId, networkId, rootDisk, vcpu, RAM, command, username, volumeIds);
+    }
+
+    @Override
+    public String create(String customName,
+                         String imageId,
+                         String networkId,
+                         Integer rootDisk,
+                         Integer vcpu,
+                         Integer RAM,
+                         String command,
+                         @NotNull String username,
+                         Map<String, String> env,
+                         List<container.desktop.api.entity.Volume.VolumeBinding> volumeIds) throws ContainerCreationException {
+        return create(null, customName, imageId, networkId, rootDisk, vcpu, RAM, command, username, env, volumeIds);
     }
 
     @Override
