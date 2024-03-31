@@ -1,4 +1,8 @@
 spring:
+  web:
+    resources:
+      static-locations:
+        - classpath:/public/
   config:
     import:
       - classpath:BeanConfiguration.yml
@@ -13,6 +17,8 @@ spring:
       ddl-auto: update
     show-sql: false
     open-in-view: false
+  mvc:
+    static-path-pattern: /**
 jwt:
   secret-key: "A259724DFB5DDDB6C76A04C033890B970FFB3435FEFD5C08"
   validity-period: 7

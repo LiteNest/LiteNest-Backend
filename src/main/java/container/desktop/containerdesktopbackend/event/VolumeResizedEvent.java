@@ -1,6 +1,5 @@
 package container.desktop.containerdesktopbackend.event;
 
-import container.desktop.api.entity.User;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

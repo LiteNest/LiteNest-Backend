@@ -18,13 +18,13 @@ import container.desktop.containerdesktopbackend.event.VolumeResizedEvent;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Repository("volume_service")
+@Service("volume_service")
 public class BackendVolumeService implements VolumeService<BackendVolume> {
 
     private final VolumeRepository<BackendVolume> volumeRepository;
@@ -44,6 +44,8 @@ public class BackendVolumeService implements VolumeService<BackendVolume> {
     public List<? extends Volume> list() {
         return volumeRepository.findAll();
     }
+
+
 
     @Nullable
     @Override

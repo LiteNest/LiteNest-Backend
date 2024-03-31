@@ -4,8 +4,6 @@ import container.desktop.api.entity.Container;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
-import java.util.List;
-
 @Getter
 public class ContainerRemovedEvent extends ApplicationEvent {
 

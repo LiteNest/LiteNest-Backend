@@ -3,7 +3,6 @@ package container.desktop.containerdesktopbackend.service;
 import com.github.dockerjava.api.DockerClient;
 import container.desktop.api.entity.Image;
 import container.desktop.api.exception.ImageUpdatingException;
-import container.desktop.api.exception.UpdatingException;
 import container.desktop.api.repository.ImageRepository;
 import container.desktop.api.service.ImageService;
 import container.desktop.containerdesktopbackend.entity.BackendImage;
