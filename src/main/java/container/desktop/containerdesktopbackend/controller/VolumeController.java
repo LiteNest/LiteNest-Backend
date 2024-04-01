@@ -10,6 +10,8 @@ import container.desktop.containerdesktopbackend.DTO.VolumeUpdatingDTO;
 import container.desktop.containerdesktopbackend.Result;
 import container.desktop.containerdesktopbackend.entity.BackendVolume;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,7 @@ import java.util.List;
 @RequestMapping("/volumes")
 public class VolumeController {
 
+    private static final Logger log = LoggerFactory.getLogger("卷服务控制器");
     private final VolumeService<BackendVolume> volumeService;
 
     public VolumeController(@Qualifier("volume_service") VolumeService<BackendVolume> volumeService) {
@@ -95,6 +98,7 @@ public class VolumeController {
     @GetMapping("/")
     public ResponseEntity<Result> list(HttpServletRequest request) {
         User user = (User) request.getAttribute("user");
+        log.info("用户{}请求查看其拥有的卷列表", user.getUsername());
         List<? extends Volume> volumes = volumeService.findByIds(user.getVolumeIds());
         Result result = Result.ok().setDetails(volumes);
         return new ResponseEntity<>(result, HttpStatus.OK);

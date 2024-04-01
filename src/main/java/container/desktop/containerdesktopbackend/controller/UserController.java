@@ -8,16 +8,23 @@ import container.desktop.containerdesktopbackend.Result;
 import container.desktop.containerdesktopbackend.entity.BackendUser;
 import container.desktop.containerdesktopbackend.service.JwtService;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 @RestController
 public class UserController {
 
 
+    private static final Logger log = LoggerFactory.getLogger("用户控制器");
     private final JwtService jwtService;
 
     @Resource(name = "user_service")
@@ -66,6 +73,13 @@ public class UserController {
         builder.message(status.getMessage());
         Result result = builder.build();
         return new ResponseEntity<>(result, httpStatus);
+
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<Result> test(HttpServletRequest request) {
+        User user = (User) request.getAttribute("user");
+        return new ResponseEntity<>(Result.ok().setDetails(Map.of("username", user.getUsername())), HttpStatus.OK);
 
     }
 

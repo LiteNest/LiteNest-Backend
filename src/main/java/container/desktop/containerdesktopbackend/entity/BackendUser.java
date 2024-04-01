@@ -1,5 +1,6 @@
 package container.desktop.containerdesktopbackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import container.desktop.api.entity.User;
 import jakarta.persistence.*;
@@ -16,6 +17,7 @@ import java.util.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "user")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class BackendUser implements User {
 
     @Id
@@ -34,6 +36,7 @@ public class BackendUser implements User {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_containers")
+    @JsonProperty("container_ids")
     private List<String> containerIds;
 
     private transient final Map<String, Object> attributes = new HashMap<>();
