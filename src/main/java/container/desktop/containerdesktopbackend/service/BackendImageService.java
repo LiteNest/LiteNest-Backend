@@ -60,13 +60,14 @@ public class BackendImageService implements ImageService<BackendImage> {
         client.listImagesCmd().exec().forEach(
                 image -> {
                     if (!id.contains(image.getId())) {
-                    BackendImage.BackendImageBuilder imageBuilder = BackendImage.builder()
-                            .id(image.getId());
-                    if (image.getRepoTags().length >= 1){
-                        imageBuilder.name(image.getRepoTags()[0]);
-                    }
-                    BackendImage backendImage = imageBuilder.build();
-                    images.add(backendImage);
+                        BackendImage.BackendImageBuilder imageBuilder =
+                                BackendImage.builder()
+                                .id(image.getId());
+                        if (image.getRepoTags().length >= 1){
+                            imageBuilder.name(image.getRepoTags()[0]);
+                        }
+                        BackendImage backendImage = imageBuilder.build();
+                        images.add(backendImage);
                     }
                 }
         );

@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -124,10 +125,15 @@ public class BackendVolumeService implements VolumeService<BackendVolume> {
                         new Bind(newId, new com.github.dockerjava.api.model.Volume("/new")))
         ).withCmd("tail", "-f", "/dev/null").exec().getId();
         client.startContainerCmd(containerId).exec();
-        final String temp = client.execCreateCmd(containerId).withCmd("sh", "-c", "'mv /resize/* /new/'").exec().getId();
+//        final String temp = client.execCreateCmd(containerId).withCmd("sh", "-c", "'/resize/* /new/'").exec().getId();
+//        try {
+//            client.execStartCmd(temp).exec(new ExecStartResultCallback()).awaitCompletion();
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         try {
-            client.execStartCmd(temp).exec(new ExecStartResultCallback()).awaitCompletion();
-        } catch (InterruptedException e) {
+            Runtime.getRuntime().exec(new String[]{"docker", "exec", containerId, "sh", "-c", "mv /resize/* /new/"}).waitFor();
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
         client.removeContainerCmd(containerId).withForce(true).withRemoveVolumes(false).exec();
