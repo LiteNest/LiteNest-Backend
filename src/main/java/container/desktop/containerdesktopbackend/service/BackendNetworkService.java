@@ -103,6 +103,11 @@ public class BackendNetworkService implements NetworkService<BackendNetwork> {
                     .id(network.getId())
                     .name(network.getName())
                     .networkDriver(Network.NetworkDriver.parse(network.getDriver()));
+            Optional<BackendNetwork> optional = networkRepository.findById(network.getId());
+            optional.ifPresent(backendNetwork -> {
+                backendNetworkBuilder.available(backendNetwork.isAvailable());
+                backendNetworkBuilder.shown(backendNetwork.isShown());
+            });
             if (network.getIpam().getConfig() != null) {
                 backendNetworkBuilder.addr(network.getIpam().getConfig().getFirst().getSubnet());
             }

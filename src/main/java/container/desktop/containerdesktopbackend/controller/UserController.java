@@ -13,12 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 public class UserController {
@@ -81,6 +79,17 @@ public class UserController {
         User user = (User) request.getAttribute("user");
         return new ResponseEntity<>(Result.ok().setDetails(Map.of("username", user.getUsername())), HttpStatus.OK);
 
+    }
+
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<Result> getProfile(@PathVariable Long userId,
+                                             HttpServletRequest request){
+        User user = (User) request.getAttribute("user");
+        if (!Objects.equals(user.getId(), userId)) {
+            return new ResponseEntity<>(Result.forbidden().setMessage("无权访问"), HttpStatus.FORBIDDEN);
+        } else {
+            return new ResponseEntity<>(Result.ok().setDetails(user), HttpStatus.OK);
+        }
     }
 
 }

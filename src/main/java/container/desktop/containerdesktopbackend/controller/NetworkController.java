@@ -25,7 +25,7 @@ public class NetworkController {
         List<? extends Network> networks = networkService.list();
         Result result = Result.builder()
                 .code(200)
-                .details(networks)
+                .details(networks.stream().filter(Network::isAvailable).toList())
                 .build();
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

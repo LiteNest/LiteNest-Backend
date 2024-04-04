@@ -56,7 +56,7 @@ public class ContainerController {
         String id;
         try {
             List<Volume.VolumeBinding> volumeBindings = new ArrayList<>();
-            if (containerCreationDTO.volumeMountingDTOs() != null) {
+            if (containerCreationDTO.volumeMountingDTOs() != null && !containerCreationDTO.volumeMountingDTOs().isEmpty()) {
                 volumeBindings.addAll(containerCreationDTO.volumeMountingDTOs().stream().map(
                         volumeMountingDTO -> new Volume.VolumeBinding() {
                             @Override

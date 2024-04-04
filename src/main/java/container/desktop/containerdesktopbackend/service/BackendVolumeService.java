@@ -122,7 +122,7 @@ public class BackendVolumeService implements VolumeService<BackendVolume> {
                 HostConfig.newHostConfig().withBinds(
                         new Bind(id, new com.github.dockerjava.api.model.Volume("/resize")),
                         new Bind(newId, new com.github.dockerjava.api.model.Volume("/new")))
-        ).exec().getId();
+        ).withCmd("tail", "-f", "/dev/null").exec().getId();
         client.startContainerCmd(containerId).exec();
         final String temp = client.execCreateCmd(containerId).withCmd("sh", "-c", "'mv /resize/* /new/'").exec().getId();
         try {
@@ -131,7 +131,7 @@ public class BackendVolumeService implements VolumeService<BackendVolume> {
             throw new RuntimeException(e);
         }
         client.removeContainerCmd(containerId).withForce(true).withRemoveVolumes(false).exec();
-
+        client.removeVolumeCmd(id).exec();
         deleteById(id);
         volume.setId(newId);
         volume.setSize(size);
