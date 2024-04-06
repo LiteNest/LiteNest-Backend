@@ -99,7 +99,7 @@ public class VolumeController {
     public ResponseEntity<Result> list(HttpServletRequest request) {
         User user = (User) request.getAttribute("user");
         log.info("用户{}请求查看其拥有的卷列表", user.getUsername());
-        List<? extends Volume> volumes = volumeService.findByIds(user.getVolumeIds());
+        List<? extends Volume> volumes = volumeService.findByIds(user.getVolumeIds().stream().toList());
         Result result = Result.ok().setDetails(volumes);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

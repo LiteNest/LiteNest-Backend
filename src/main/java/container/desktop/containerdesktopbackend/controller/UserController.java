@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONObject;
 import container.desktop.api.entity.User;
 import container.desktop.api.service.UserService;
 import container.desktop.containerdesktopbackend.DTO.UserDTO;
+import container.desktop.containerdesktopbackend.DTO.UserUpdatingDTO;
 import container.desktop.containerdesktopbackend.Result;
 import container.desktop.containerdesktopbackend.entity.BackendUser;
 import container.desktop.containerdesktopbackend.service.JwtService;
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -27,6 +29,8 @@ public class UserController {
 
     @Resource(name = "user_service")
     private UserService<BackendUser> userService;
+    @Resource
+    private PasswordEncoder passwordEncoder;
 
     public UserController(JwtService jwtService) {
 //        this.userService = userService;
@@ -81,15 +85,22 @@ public class UserController {
 
     }
 
-    @GetMapping("/users/{userId}")
-    public ResponseEntity<Result> getProfile(@PathVariable Long userId,
-                                             HttpServletRequest request){
+    @GetMapping("/users")
+    public ResponseEntity<Result> getProfile(HttpServletRequest request){
         User user = (User) request.getAttribute("user");
-        if (!Objects.equals(user.getId(), userId)) {
-            return new ResponseEntity<>(Result.forbidden().setMessage("无权访问"), HttpStatus.FORBIDDEN);
-        } else {
-            return new ResponseEntity<>(Result.ok().setDetails(user), HttpStatus.OK);
+        user.setPassword(null);
+        return new ResponseEntity<>(Result.ok().setDetails(user), HttpStatus.OK);
+    }
+
+    @PutMapping("/users")
+    public ResponseEntity<Result> update(@RequestBody UserUpdatingDTO userUpdatingDTO,
+                                         HttpServletRequest request){
+        User user = (User) request.getAttribute("user");
+        if (userUpdatingDTO.password() != null) {
+                    user.setPassword(passwordEncoder.encode(userUpdatingDTO.password()));
         }
+        userService.update((BackendUser) user);
+        return new ResponseEntity<>(Result.ok(), HttpStatus.OK);
     }
 
 }

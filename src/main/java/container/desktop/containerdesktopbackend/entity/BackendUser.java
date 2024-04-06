@@ -51,7 +51,7 @@ public class BackendUser implements User {
     @Column(name = "volume_id")
     @CollectionTable(name = "user_volume_ids")
     @JsonProperty("owned_volume_ids")
-    private List<String> volumeIds;
+    private Set<String> volumeIds;
 
 
 
@@ -82,7 +82,7 @@ public class BackendUser implements User {
     @Override
     public void addVolumeId(String volumeId) {
         if (this.volumeIds == null) {
-            this.volumeIds = new LinkedList<>();
+            this.volumeIds = new HashSet<>();
         }
         volumeIds.add(volumeId);
     }
@@ -90,7 +90,7 @@ public class BackendUser implements User {
     @Override
     public void addVolumeIds(Collection<String> volumeIds) {
         if (this.volumeIds == null) {
-            this.volumeIds = new LinkedList<>();
+            this.volumeIds = new HashSet<>();
         }
         this.volumeIds.addAll(volumeIds);
     }
@@ -98,7 +98,7 @@ public class BackendUser implements User {
     @Override
     public void removeVolumeId(String volumeId) {
         if (this.volumeIds == null) {
-            this.volumeIds = new LinkedList<>();
+            this.volumeIds = new HashSet<>();
         }
         volumeIds.remove(volumeId);
     }

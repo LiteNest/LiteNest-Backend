@@ -146,6 +146,7 @@ public class BackendContainerService implements ContainerService<BackendContaine
         assert networkOptional.isPresent();
         HostConfig hostConfig = HostConfig.newHostConfig()
                 .withDiskQuota(rootDisk.longValue() * 1024 * 1024 * 1024)
+                .withVolumeDriver("loopback")
                 .withCpuCount(vcpu.longValue())
                 .withMemory(RAM.longValue() * 1024 * 1024)
                 .withBinds(volumeIds.stream().map(
