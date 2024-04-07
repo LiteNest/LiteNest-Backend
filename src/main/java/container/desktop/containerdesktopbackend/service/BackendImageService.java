@@ -56,7 +56,7 @@ public class BackendImageService implements ImageService<BackendImage> {
         logger.info("开始刷新镜像数据库");
         long start = System.nanoTime();
         List<BackendImage> images = new ArrayList<>();
-        List<String> id = imageImageRepository.findAll().stream().map(BackendImage::getId).toList();
+        List<String> id = new ArrayList<>(imageImageRepository.findAll().stream().map(BackendImage::getId).toList());
         client.listImagesCmd().exec().forEach(
                 image -> {
                     if (!id.contains(image.getId())) {
@@ -69,8 +69,12 @@ public class BackendImageService implements ImageService<BackendImage> {
                         BackendImage backendImage = imageBuilder.build();
                         images.add(backendImage);
                     }
+                    id.remove(image.getId());
                 }
         );
+        for (String s : id) {
+            imageImageRepository.deleteById(s);
+        }
         imageImageRepository.saveAllAndFlush(images);
         long end = System.nanoTime();
         logger.info("镜像数据库刷新完毕");

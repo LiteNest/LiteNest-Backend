@@ -71,7 +71,7 @@ public class AdminVolumeController {
             return new ResponseEntity<>(result, HttpStatus.OK);
         }
     }
-    
+
 
     @GetMapping("/")
     public ResponseEntity<Result> list(HttpServletRequest request) {
