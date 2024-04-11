@@ -140,6 +140,9 @@ public class BackendContainerService implements ContainerService<BackendContaine
         if (!userOptional.get().hasRole(User.Role.ADMIN) && !imageOptional.get().isPublic()) {
             throw new ContainerCreationException("使用了非公开镜像", ContainerCreationException.Reason.USING_NON_PUBLIC_IMAGE);
         }
+        if (vcpu < imageOptional.get().getMinimumVcpus() || RAM < imageOptional.get().getMinimumRAM() || rootDisk < imageOptional.get().getMinimumRootDisk()) {
+            throw new ContainerCreationException("不符合最低配置要求", ContainerCreationException.Reason.INSUFFICIENT_MINIMUM_REQUIREMENTS);
+        }
 
         Integer port = imageOptional.get().getRemoteDesktopPort();
         Optional<BackendNetwork> networkOptional = networkRepository.findById(networkId);

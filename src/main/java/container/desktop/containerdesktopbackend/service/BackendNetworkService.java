@@ -128,6 +128,9 @@ public class BackendNetworkService implements NetworkService<BackendNetwork> {
             for (String containerId : backendNetwork.getContainerIds()) {
                 Optional<BackendContainer> optional = containerRepository.findById(containerId);
                 assert optional.isPresent();
+                if (backendNetwork.getContainers() == null) {
+                    backendNetwork.setContainers(new LinkedList<>());
+                }
                 backendNetwork.getContainers().add(optional.get());
             }
         }

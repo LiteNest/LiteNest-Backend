@@ -79,8 +79,13 @@ public class ContainerController {
                     user.getUsername(), env, volumeBindings
             );
         } catch (ContainerCreationException e) {
+            int value = switch (e.getReason()) {
+                case USING_NON_PUBLIC_IMAGE -> HttpStatus.FORBIDDEN.value();
+                case INSUFFICIENT_MINIMUM_REQUIREMENTS -> HttpStatus.UNPROCESSABLE_ENTITY.value();
+                case UNKNOWN -> HttpStatus.INTERNAL_SERVER_ERROR.value();
+            };
             Result result = Result.builder()
-                    .code(HttpStatus.FORBIDDEN.value())
+                    .code(value)
                     .message(e.getMessage())
                     .build();
             return new ResponseEntity<>(result, HttpStatus.FORBIDDEN);
