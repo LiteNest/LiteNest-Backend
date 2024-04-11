@@ -98,6 +98,7 @@ public class BackendNetworkService implements NetworkService<BackendNetwork> {
         log.info("开始刷新网络数据库");
         long start = System.nanoTime();
         List<BackendNetwork> backendNetworks = new ArrayList<>();
+        List<String> ids = new LinkedList<>();
         for (com.github.dockerjava.api.model.Network network : client.listNetworksCmd().exec()) {
             BackendNetwork.BackendNetworkBuilder backendNetworkBuilder = BackendNetwork.builder()
                     .id(network.getId())
@@ -112,10 +113,14 @@ public class BackendNetworkService implements NetworkService<BackendNetwork> {
                 backendNetworkBuilder.addr(network.getIpam().getConfig().getFirst().getSubnet());
             }
             backendNetworks.add(backendNetworkBuilder.build());
+            ids.add(network.getId());
         }
         networkRepository.saveAllAndFlush(backendNetworks);
         refresh(backendNetworks);
-
+        networkRepository.findAll().stream()
+                .map(BackendNetwork::getId)
+                .filter(s -> !ids.contains(s))
+                .forEach(networkRepository::deleteById);
         long end = System.nanoTime();
         log.info("网络数据库刷新完毕");
         log.info("网络数据库刷新用时{}ms", (end-start)/1.0e6);

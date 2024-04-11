@@ -37,7 +37,7 @@ public class BackendVolume implements Volume {
     @Column(name = "size")
     private Integer size;
     @Column(name = "owner_id")
-    @JsonIgnore
+    @JsonProperty("owner_id")
     private Long ownerId;
 
     private transient Map<String, Object> attributes = new HashMap<>();
