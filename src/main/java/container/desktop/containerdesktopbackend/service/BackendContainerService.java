@@ -144,8 +144,8 @@ public class BackendContainerService implements ContainerService<BackendContaine
         int minRAM = 0;
         int minRootDisk = 0;
         if (imageOptional.get().getMinimumVcpus() != null) minVcpu = imageOptional.get().getMinimumVcpus();
-        if (imageOptional.get().getMinimumRAM() != null) minVcpu = imageOptional.get().getMinimumRAM();
-        if (imageOptional.get().getMinimumRootDisk() != null) minVcpu = imageOptional.get().getMinimumRootDisk();
+        if (imageOptional.get().getMinimumRAM() != null) minRAM = imageOptional.get().getMinimumRAM();
+        if (imageOptional.get().getMinimumRootDisk() != null) minRootDisk = imageOptional.get().getMinimumRootDisk();
         if (vcpu < minVcpu || RAM < minRAM || rootDisk < minRootDisk) {
             throw new ContainerCreationException("不符合最低配置要求", ContainerCreationException.Reason.INSUFFICIENT_MINIMUM_REQUIREMENTS);
         }
