@@ -8,9 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Entity
 @Data
@@ -22,6 +20,9 @@ public class BackendContainer implements Container {
     @Id
     @Column(name = "id")
     private String id;
+    @Column(name = "custom_name")
+    @JsonProperty("custom_name")
+    private String customName;
     @Column(name = "image_id")
     @JsonProperty("image_id")
     private String imageId;
@@ -43,6 +44,12 @@ public class BackendContainer implements Container {
     @Column(name = "owner_id")
     @JsonProperty("owner_id")
     private Long ownerId;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "container_volume")
+    @JsonProperty("data_volume_ids")
+    private List<String> dataVolumeIds;
+    @Column(name = "port")
+    private Integer port;
     private transient final Map<String, Object> attributes = new HashMap<>();
 
     @Override
@@ -65,4 +72,27 @@ public class BackendContainer implements Container {
         attributes.clear();
     }
 
+    @Override
+    public void addDataVolumeId(String volumeId) {
+        if (dataVolumeIds == null) {
+            dataVolumeIds = new LinkedList<>();
+        }
+        dataVolumeIds.add(volumeId);
+    }
+
+    @Override
+    public void removeDataVolumeId(String volumeId) {
+        if (dataVolumeIds == null) {
+            dataVolumeIds = new LinkedList<>();
+        }
+        dataVolumeIds.remove(volumeId);
+    }
+
+    @Override
+    public void addDataVolumeIds(Collection<String> ids) {
+        if (dataVolumeIds == null) {
+            dataVolumeIds = new LinkedList<>();
+        }
+        dataVolumeIds.addAll(ids);
+    }
 }

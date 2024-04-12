@@ -28,6 +28,7 @@ public class BackendNetwork implements Network {
     @Column(name = "id")
     private String id;
     private String name;
+    @Column(name = "available")
     private boolean available;
     @Column(name = "is_shown")
     private boolean shown;

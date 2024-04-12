@@ -4,24 +4,36 @@ import com.alibaba.fastjson2.JSONObject;
 import container.desktop.api.entity.User;
 import container.desktop.api.service.UserService;
 import container.desktop.containerdesktopbackend.DTO.UserDTO;
+import container.desktop.containerdesktopbackend.DTO.UserUpdatingDTO;
 import container.desktop.containerdesktopbackend.Result;
 import container.desktop.containerdesktopbackend.entity.BackendUser;
 import container.desktop.containerdesktopbackend.service.JwtService;
+import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import java.util.Objects;
 
 @RestController
 public class UserController {
 
-    private final UserService<BackendUser> userService;
+
+    private static final Logger log = LoggerFactory.getLogger("用户控制器");
     private final JwtService jwtService;
 
-    public UserController(UserService<BackendUser> userService, JwtService jwtService) {
-        this.userService = userService;
+    @Resource(name = "user_service")
+    private UserService<BackendUser> userService;
+    @Resource
+    private PasswordEncoder passwordEncoder;
+
+    public UserController(JwtService jwtService) {
+//        this.userService = userService;
         this.jwtService = jwtService;
     }
 
@@ -64,6 +76,31 @@ public class UserController {
         Result result = builder.build();
         return new ResponseEntity<>(result, httpStatus);
 
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<Result> test(HttpServletRequest request) {
+        User user = (User) request.getAttribute("user");
+        return new ResponseEntity<>(Result.ok().setDetails(Map.of("username", user.getUsername())), HttpStatus.OK);
+
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<Result> getProfile(HttpServletRequest request){
+        User user = (User) request.getAttribute("user");
+        user.setPassword(null);
+        return new ResponseEntity<>(Result.ok().setDetails(user), HttpStatus.OK);
+    }
+
+    @PutMapping("/users")
+    public ResponseEntity<Result> update(@RequestBody UserUpdatingDTO userUpdatingDTO,
+                                         HttpServletRequest request){
+        User user = (User) request.getAttribute("user");
+        if (userUpdatingDTO.password() != null) {
+                    user.setPassword(passwordEncoder.encode(userUpdatingDTO.password()));
+        }
+        userService.update((BackendUser) user);
+        return new ResponseEntity<>(Result.ok(), HttpStatus.OK);
     }
 
 }

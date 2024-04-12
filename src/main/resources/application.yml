@@ -1,14 +1,26 @@
 spring:
+  profiles:
+    active: dev
+  web:
+    resources:
+      static-locations:
+        - classpath:/public/
+  config:
+    import:
+      - classpath:BeanConfiguration.yml
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: "jdbc:mysql://localhost:3306/cloud?autoReconnect=true"
+    url: "jdbc:mysql://192.168.117.20:3306/cloud?autoReconnect=true"
     username: root
-    password: "6ms2fT87UNvugs9qcjVgVvjDLrL98tFEo0yi5veZcWpRbf80JvjziDX1LNUZbs5GK0dZ1Hj9Xtrri2QnQJVMMucxTHAJLF88uy0v"
+#    password: "6ms2fT87UNvugs9qcjVgVvjDLrL98tFEo0yi5veZcWpRbf80JvjziDX1LNUZbs5GK0dZ1Hj9Xtrri2QnQJVMMucxTHAJLF88uy0v"
+    password: "123456"
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
     open-in-view: false
+  mvc:
+    static-path-pattern: /**
 jwt:
   secret-key: "A259724DFB5DDDB6C76A04C033890B970FFB3435FEFD5C08"
   validity-period: 7
@@ -21,7 +33,7 @@ cors:
   allowed-origins: "*"
   allowed-methods: "*"
   allowed-headers: "*"
-  allowed-credentials: true
+  allowed-credentials: false
 
 container:
   host: "unix:///var/run/docker.sock"
@@ -35,6 +47,9 @@ container:
   response-timeout: 45
   response-timeout-unit: SECOND
   auto-flush: true
+  middle-image: "ubuntu:latest"
 logging:
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%clr(%-5level)] %clr(%-15.15logger){cyan}：%msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%clr(%level)] %clr(%-15.15logger){cyan}：%msg%n"
+  level:
+    root: info

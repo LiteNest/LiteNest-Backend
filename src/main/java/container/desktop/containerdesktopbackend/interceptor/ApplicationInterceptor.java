@@ -1,13 +1,13 @@
 package container.desktop.containerdesktopbackend.interceptor;
 
-import container.desktop.api.entity.User;
 import container.desktop.api.repository.UserRepository;
 import container.desktop.containerdesktopbackend.entity.BackendUser;
 import container.desktop.containerdesktopbackend.service.JwtService;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 public final class ApplicationInterceptor implements Interceptor {
 
+    private static final Logger log = LoggerFactory.getLogger(ApplicationInterceptor.class);
     @Value("${jwt.token-header}")
     private String TOKEN_HEADER;
     @Value("${jwt.token-head}")
@@ -43,6 +44,7 @@ public final class ApplicationInterceptor implements Interceptor {
         String username = verifyJWT(jwtService, userRepository, header.substring(TOKEN_HEAD.length()));
         if (username == null) {
             unauthorized(response);
+            log.info("令牌{}无效", header.substring(TOKEN_HEAD.length()));
             return false;
         }
         assert userRepository.findByUsername(username).isPresent();

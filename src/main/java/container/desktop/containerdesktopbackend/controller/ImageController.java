@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -38,5 +39,22 @@ public class ImageController {
                 .code(200)
                 .details(images)
                 .build(), HttpStatus.OK);
+    }
+
+    @GetMapping("/{imageId}")
+    private ResponseEntity<Result> get(@PathVariable String imageId,
+                                          HttpServletRequest request) {
+        User user = (User) request.getAttribute("user");
+        Image image = imageService.findById(imageId);
+        if (image == null) {
+            Result result = Result.notFound().setMessage("镜像" + imageId + "不存在");
+            return new ResponseEntity<>(result, HttpStatus.NOT_FOUND);
+        }
+        if (!image.isPublic() && !user.hasRole(User.Role.ADMIN)) {
+            Result result = Result.forbidden().setMessage("访问非公开镜像");
+            return new ResponseEntity<>(result, HttpStatus.FORBIDDEN);
+        }
+        Result result = Result.ok().setDetails(image);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

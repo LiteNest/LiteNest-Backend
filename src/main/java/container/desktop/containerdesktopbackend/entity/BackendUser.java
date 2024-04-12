@@ -1,5 +1,7 @@
 package container.desktop.containerdesktopbackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import container.desktop.api.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,10 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Entity
 @Data
@@ -18,12 +17,13 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "user")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class BackendUser implements User {
 
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private java.lang.Long id;
     @Column(name = "username")
     private String username;
     @Column(name = "password")
@@ -36,6 +36,7 @@ public class BackendUser implements User {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_containers")
+    @JsonProperty("container_ids")
     private List<String> containerIds;
 
     private transient final Map<String, Object> attributes = new HashMap<>();
@@ -45,6 +46,12 @@ public class BackendUser implements User {
     @Column(name = "meta_value")
     @CollectionTable(name = "user_metadata")
     private Map<String, String> metadata;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Column(name = "volume_id")
+    @CollectionTable(name = "user_volume_ids")
+    @JsonProperty("owned_volume_ids")
+    private Set<String> volumeIds;
 
 
 
@@ -70,6 +77,30 @@ public class BackendUser implements User {
     public void removeContainerId(String id) {
         if (getContainerIds() == null) return;
         getContainerIds().remove(id);
+    }
+
+    @Override
+    public void addVolumeId(String volumeId) {
+        if (this.volumeIds == null) {
+            this.volumeIds = new HashSet<>();
+        }
+        volumeIds.add(volumeId);
+    }
+
+    @Override
+    public void addVolumeIds(Collection<String> volumeIds) {
+        if (this.volumeIds == null) {
+            this.volumeIds = new HashSet<>();
+        }
+        this.volumeIds.addAll(volumeIds);
+    }
+
+    @Override
+    public void removeVolumeId(String volumeId) {
+        if (this.volumeIds == null) {
+            this.volumeIds = new HashSet<>();
+        }
+        volumeIds.remove(volumeId);
     }
 
     @Override

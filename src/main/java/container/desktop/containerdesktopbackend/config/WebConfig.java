@@ -17,11 +17,19 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // 设置通用拦截器：拦截未登陆的请求，仅放行/login和/register这两个公开接口
         registry.addInterceptor(applicationInterceptor)
-                .excludePathPatterns("/login", "/register")
+                .addPathPatterns("/**")
+                .excludePathPatterns("/login", "/register", "/public/**")
                 .order(1);
         // 设置管理员用户拦截器：拦截非管理员用户访问管理接口
         registry.addInterceptor(adminInterceptor)
                 .addPathPatterns("/admin/**")
                 .order(2);
     }
+
+//    @Override
+//    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+//        registry.addResourceHandler("/**")
+//                .addResourceLocations("classpath:/public/");
+//
+//    }
 }
