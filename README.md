@@ -1,18 +1,20 @@
-# Introduction
-### What is Container Cloud Desktop
-Container Cloud Desktop is an innovative virtualization technology that allows users to access and manage their desktop environment through a cloud platform. No matter where they are, as long as they have an Internet connection, users can securely connect to their personal or work desktop from any device for a consistent usage experience. Container cloud desktops support multiple operating systems, are easy to scale, and offer powerful data protection capabilities, making them ideal for remote working and digital transformation.
+# LiteNest Backend
+![GitHub commit activity](https://img.shields.io/github/commit-activity/t/LiteNest/LiteNest-Backend?label=Commits)
+![GitHub Release Date](https://img.shields.io/github/release-date/LiteNest/LiteNest-Backend?display_date=published_at&label=Last%20Release%20At)
+![GitHub last commit](https://img.shields.io/github/last-commit/LiteNest/LiteNest-Backend?label=Last%20Commit)
+### What is LiteNest Backend
+LiteNest Backend is the backend application of an open source Container Cloud Desktop, it uses innovative virtualization technology that allows users to access and manage their desktop environment through a cloud platform. No matter where they are, as long as they have an Internet connection, users can securely connect to their personal or work desktop from any device for a consistent usage experience. Container cloud desktops support multiple operating systems, are easy to scale, and offer powerful data protection capabilities, making them ideal for remote working and digital transformation.
 The Container cloud desktop system takes full advantage of container virtualization technology to provide efficient and scalable desktop solutions through lightweight container instances. Containers have significant advantages over traditional virtual machines in terms of startup time, resource consumption, and system isolation. Container cloud Desktop leverages these benefits to provide users with a responsive, easy-to-manage desktop environment. In addition, the administrator can directly manage resources such as cloud desktop instances, volume instances, network instances, and images of users, greatly simplifying desktop maintenance and management.
 Features of this application
 ### This application has the following features
 * Make full use of Docker container virtualization technology: Make full use of Docker container virtualization technology to provide tenants with a stable and reliable cloud desktop environment. Docker's flexibility and lightweight nature allows us to quickly deploy, scale, and manage users' desktop environments while ensuring high application availability and performance stability.
 * Plug-in system support: In order to meet the needs of different system administrators, we provide a flexible plug-in system. System administrators can develop and integrate various plug-ins according to their needs to extend the functions of the container cloud desktop platform. This allows system administrators to customize and optimize the cloud desktop platform according to their own workflow and business needs, making their cloud desktop platform more flexible and personalized.
 * Efficient design based on Spring Boot framework: This application is designed using Java's Spring Boot framework to ensure its efficiency and reliability. Spring Boot framework simplifies the development process and improves the response speed and performance of the system. With the support of Spring Boot, we can provide users with stable and efficient container cloud desktop services to meet their various work and application needs.
-# Install, Experience and Contribute
-### Install 
+### Install, Experience and Contribute
 #### Install from source
 1. Clone the Git Repository:
  ```shell
-git clone https://github.com/ForestRealms/Container-Desktop-Backend.git
+git clone https://github.com/LiteNest/LiteNest-Backend.git
  ```
 2. Change to project directory and build with [Maven](https://maven.apache.org/):
  ```shell
@@ -27,10 +29,10 @@ cp ./target/*.jar /path/to/backend
 Go to the [Release](https://github.com/ForestRealms/Container-Desktop-Backend/releases) page, 
 select the appropriate version, and download the `*.jar` file inside, which is the application package
 
-### Start Application
+#### Start Application
 Make sure your JRE version is at least 21, and execute the following command to start the application:
 ```shell
-java -Xmx4G -jar ContainerDesktopBackend-X.X.X.jar -Dspring.config.location=/path/to/application.yml
+java -Xmx4G -jar LiteNest-Backend-X.X.X.jar -Dspring.config.location=/path/to/application.yml
 ```
 where:
 
@@ -38,7 +40,7 @@ where:
 * `ContainerDesktopBackend-x.x.x.jar` indicates the package path or name. Replace it with a specific path or name.
 * `-Dspring.config.location=/path/to/application.yml` indicates the location of the custom configuration file. Replace it with a specific location
 
-### Configuration
+#### Configuration
 The file `application.yml` above is called **Configuation File**, specifically, the default content is:
 ```yaml
 spring:
@@ -138,12 +140,12 @@ Welcome to contribute to this project! Here are several ways you can contribute:
 * Write Documentation: Help improve the project's documentation, including the README, user manuals, etc.
 * Fix Issues: If you have the ability to fix existing issues, please submit a Pull Request at any time. We'll review and merge your contributions as soon as possible.
 
-### Contributors
+#### Contributors
 <a href="https://github.com/LiteNest/LiteNest-API/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=LiteNest/LiteNest-API" />
 </a>
 
-### Committing Code
+#### Committing Code
 
 1. Fork this project to your GitHub account.
 2. Clone the forked repository to your local environment: `git clone https://github.com/ForestRealms/Container-Desktop-Backend.git`
