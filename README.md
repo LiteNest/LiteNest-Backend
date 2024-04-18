@@ -138,6 +138,11 @@ Welcome to contribute to this project! Here are several ways you can contribute:
 * Write Documentation: Help improve the project's documentation, including the README, user manuals, etc.
 * Fix Issues: If you have the ability to fix existing issues, please submit a Pull Request at any time. We'll review and merge your contributions as soon as possible.
 
+### Contributors
+<a href="https://github.com/LiteNest/LiteNest-API/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=LiteNest/LiteNest-API" />
+</a>
+
 ### Committing Code
 
 1. Fork this project to your GitHub account.
@@ -150,3 +155,6 @@ Welcome to contribute to this project! Here are several ways you can contribute:
 8. Wait for our review, and we'll provide feedback and process your Pull Request as soon as possible.
 
 Thank you for your support and contributions to this project!
+
+### Status
+![Alt](https://repobeats.axiom.co/api/embed/0f0c9a9e62f7f1699aa7b3cd98491cfb54cd89b3.svg "Repobeats analytics image")
