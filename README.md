@@ -157,4 +157,4 @@ Welcome to contribute to this project! Here are several ways you can contribute:
 Thank you for your support and contributions to this project!
 
 ### Status
-![Alt](https://repobeats.axiom.co/api/embed/8f58681e5ec797c9bd1a6efbee7886286c3253b6.svg "Repobeats analytics image")
+![Alt](https://repobeats.axiom.co/api/embed/0f0c9a9e62f7f1699aa7b3cd98491cfb54cd89b3.svg "Repobeats analytics image")
