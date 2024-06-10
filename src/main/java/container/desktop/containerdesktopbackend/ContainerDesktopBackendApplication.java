@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class ContainerDesktopBackendApplication {
     public static long applicationStart = System.nanoTime();
     public static long applicationStarted;
+    public final static String VERSION = "1.0.1";
     public static void main(String[] args) {
         System.out.println("Java Runtime Version: " + System.getProperty("java.runtime.version"));
         System.out.println("Java Vendor: " + System.getProperty("java.vendor"));
